@@ -227,10 +227,20 @@ int main(int argc, char* argv[]) try {
             congestion_path = argv[++i];
         } else if (arg == "--no-mode-switch-penalty") {
             ga_config.mode_switch_penalty = 0;
+        } else if (arg == "--transfer-cost" && i + 1 < argc) {
+            ga_config.mode_switch_penalty = std::stod(argv[++i]);
+            if (!std::isfinite(ga_config.mode_switch_penalty) || ga_config.mode_switch_penalty < 0) {
+                throw std::invalid_argument("Transfer cost must be nonnegative and finite");
+            }
         } else if (arg == "--time-cost" && i + 1 < argc) {
             ga_config.time_cost_per_hour = std::stod(argv[++i]);
             if (!std::isfinite(ga_config.time_cost_per_hour) || ga_config.time_cost_per_hour < 0) {
                 throw std::invalid_argument("Time cost must be nonnegative and finite");
+            }
+        } else if (arg == "--sea-rate" && i + 1 < argc) {
+            ga_config.fuel_rate_sea = std::stod(argv[++i]);
+            if (!std::isfinite(ga_config.fuel_rate_sea) || ga_config.fuel_rate_sea <= 0) {
+                throw std::invalid_argument("Sea rate must be positive and finite");
             }
         } else if (arg == "--road-rate" && i + 1 < argc) {
             ga_config.fuel_rate_road = std::stod(argv[++i]);
@@ -425,7 +435,7 @@ int main(int argc, char* argv[]) try {
             std::cout << "[TSP Ingestion] Dynamic matrix missing one or more waypoints, computing direct graph matrix for waypoints...\n";
             cost_matrix = RouteOptimizer::DynamicCostMatrix::createFromGraph(
                 full_graph, custom_waypoints, ga_config.fuel_rate_sea, ga_config.fuel_rate_road,
-                ga_config.time_cost_per_hour);
+                ga_config.time_cost_per_hour, ga_config.mode_switch_penalty);
         }
 
         auto tsp_t_start = std::chrono::high_resolution_clock::now();
@@ -444,11 +454,13 @@ int main(int argc, char* argv[]) try {
         // Stitch the actual physical sea lane path between consecutive ports in the optimized tour
         std::vector<int> full_sea_path;
         RouteOptimizer::AStarOptimizer astar(full_graph, ga_config.fuel_rate_sea, ga_config.fuel_rate_road,
-                                             37.0, ga_config.time_cost_per_hour);
+                                             37.0, ga_config.time_cost_per_hour, ga_config.mode_switch_penalty);
         double total_actual_dist = 0.0;
         double total_actual_cost = 0.0;
         double total_actual_time = 0.0;
         double total_actual_fuel = 0.0;
+        int total_switches = 0;
+        auto previous_mode = RouteOptimizer::TransportMode::UNKNOWN;
 
         for (size_t i = 0; i + 1 < tsp_sol.path.size(); ++i) {
             int leg_start = tsp_sol.path[i];
@@ -457,6 +469,12 @@ int main(int argc, char* argv[]) try {
             if (leg_res.is_valid && !leg_res.path.empty()) {
                 total_actual_dist += leg_res.total_distance_km;
                 total_actual_cost += leg_res.total_cost;
+                total_switches += leg_res.mode_switches;
+                if (previous_mode != RouteOptimizer::TransportMode::UNKNOWN && previous_mode != leg_res.first_mode) {
+                    ++total_switches;
+                    total_actual_cost += ga_config.mode_switch_penalty;
+                }
+                previous_mode = leg_res.last_mode;
                 total_actual_time += leg_res.total_transit_hours;
                 total_actual_fuel += leg_res.fuel_cost;
                 for (size_t k = (i == 0 ? 0 : 1); k < leg_res.path.size(); ++k) {
@@ -479,7 +497,7 @@ int main(int argc, char* argv[]) try {
                 total_actual_dist,
                 total_actual_time,
                 total_actual_fuel,
-                0,
+                total_switches,
                 duration_ms,
                 distributed ? "MPI TSP (" + std::to_string(world_size) + " ranks)" :
                     ga_config.use_cuda ? "CUDA GPU TSP (OX1)" : "OpenMP CPU TSP (OX1)",
@@ -510,7 +528,8 @@ int main(int argc, char* argv[]) try {
     // 1. DETERMINISTIC A* SHORTEST/LEAST-COST ROUTING (Default Fallback)
     // =========================================================================
     if (algorithm == "astar" || algorithm == "ASTAR") {
-        RouteOptimizer::AStarOptimizer astar(full_graph, ga_config.fuel_rate_sea, ga_config.fuel_rate_road);
+        RouteOptimizer::AStarOptimizer astar(full_graph, ga_config.fuel_rate_sea, ga_config.fuel_rate_road,
+                                             37.0, 1.0, ga_config.mode_switch_penalty);
         
         auto astar_res = astar.findOptimalRoute(origin_id, dest_id);
 

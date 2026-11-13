@@ -3,8 +3,8 @@
  * High-Performance Oceanic Container Shipping Route Optimizer
  * Features:
  * - Multi-Stop Intermediate Waypoint Management & TSP Permutation GA Optimization
- * - Worldwide Live Weather Radars, Cyclones, Gales & Oceanic Buoy Telemetry (Global Coverage)
- * - Worldwide Live AIS Marine Traffic Fleet Simulation (36+ Global Commercial Vessels & Anchorages)
+ * - Live marine weather samples at shipping corridors
+ * - AIS vessel reports, including vessels reporting at anchor
  * - Dynamic Congestion Management (Port Strikes & Typhoon Disruption Detours)
  */
 
@@ -34,8 +34,8 @@ const state = {
   portsLayerGroup: null,
   weatherLayerGroup: null,
   trafficLayerGroup: null,
-  aisMarkers: [],
-  aisFleetTimer: null
+  weatherSamples: [],
+  vessels: []
 };
 
 // Global Maritime Strategic Seaports (All Oceanic Basins)
@@ -131,121 +131,6 @@ const ENGINES = {
   }
 };
 
-// Worldwide Live Marine Weather Storm Systems Across ALL Oceans
-const LIVE_WEATHER_STORMS = [
-  // Pacific Basin
-  { id: "storm_guchol", name: "Typhoon Guchol (Category 3)", type: "Tropical Cyclone", lat: 19.8, lon: 118.5, radius_km: 320, wind_kts: 52, gusts_kts: 70, wave_height_m: 5.6, pressure_hpa: 964, status: "Active Cyclone Warning", color: "#ef4444" },
-  { id: "storm_bolaven", name: "Super Typhoon Bolaven (Cat 5)", type: "Super Typhoon", lat: 16.5, lon: 138.2, radius_km: 450, wind_kts: 95, gusts_kts: 120, wave_height_m: 8.4, pressure_hpa: 920, status: "Severe Tropical Warning", color: "#ef4444" },
-  { id: "swell_kuroshio", name: "Kuroshio Pacific Rogue Swell", type: "Oceanic Swell Zone", lat: 33.5, lon: 142.8, radius_km: 240, wind_kts: 34, gusts_kts: 44, wave_height_m: 4.1, pressure_hpa: 1004, status: "High Swell Advisory", color: "#fda60a" },
-  { id: "storm_hilary", name: "Hurricane Hilary (Category 2)", type: "Eastern Pacific Hurricane", lat: 21.4, lon: -111.5, radius_km: 290, wind_kts: 65, gusts_kts: 80, wave_height_m: 6.2, pressure_hpa: 972, status: "Hurricane Warning", color: "#ef4444" },
-  
-  // Atlantic Basin
-  { id: "storm_lee", name: "Hurricane Lee (Major Cat 3)", type: "North Atlantic Hurricane", lat: 26.2, lon: -63.5, radius_km: 380, wind_kts: 78, gusts_kts: 96, wave_height_m: 7.1, pressure_hpa: 950, status: "Hurricane Warning", color: "#ef4444" },
-  { id: "gale_celtic", name: "North Atlantic Extratropical Gale", type: "Deep Low Pressure", lat: 49.5, lon: -8.5, radius_km: 360, wind_kts: 48, gusts_kts: 62, wave_height_m: 5.8, pressure_hpa: 976, status: "Gale Warning Force 9", color: "#ef4444" },
-  { id: "gale_arctic", name: "Arctic Polar Low Gale", type: "Polar Mesocyclone", lat: 62.4, lon: 3.5, radius_km: 280, wind_kts: 40, gusts_kts: 55, wave_height_m: 4.8, pressure_hpa: 984, status: "Polar Low Advisory", color: "#38bdf8" },
-
-  // Indian Ocean & Arabian Sea
-  { id: "swell_arabian", name: "Arabian Sea Monsoon Swell", type: "Severe Oceanic Swell", lat: 14.5, lon: 64.0, radius_km: 380, wind_kts: 28, gusts_kts: 38, wave_height_m: 3.8, pressure_hpa: 1008, status: "Heavy Swell Advisory", color: "#fda60a" },
-  { id: "depression_bengal", name: "Bay of Bengal Deep Depression", type: "Cyclonic Depression", lat: 12.8, lon: 87.2, radius_km: 260, wind_kts: 38, gusts_kts: 48, wave_height_m: 4.3, pressure_hpa: 994, status: "Tropical Storm Watch", color: "#f59e0b" },
-  { id: "swell_south_indian", name: "South Indian Ocean Swell Belt", type: "Deepwater Swell", lat: -28.5, lon: 78.0, radius_km: 420, wind_kts: 35, gusts_kts: 48, wave_height_m: 5.2, pressure_hpa: 998, status: "Open Ocean Swell", color: "#fda60a" },
-
-  // Mediterranean & Red Sea
-  { id: "mistral_med", name: "Mediterranean Mistral Storm", type: "Gale Wind Corridor", lat: 40.8, lon: 5.2, radius_km: 220, wind_kts: 38, gusts_kts: 50, wave_height_m: 3.5, pressure_hpa: 1006, status: "Mistral Gale Alert", color: "#f59e0b" },
-  { id: "wind_redsea", name: "Red Sea Northerly Channeling", type: "High Sea Corridor", lat: 23.2, lon: 37.8, radius_km: 180, wind_kts: 24, gusts_kts: 32, wave_height_m: 2.3, pressure_hpa: 1012, status: "Moderate Chop", color: "#13d6e8" },
-
-  // Southern Oceans
-  { id: "roaring_forties", name: "Roaring Forties Oceanic Swell", type: "Circumpolar Gale", lat: -36.5, lon: 22.0, radius_km: 480, wind_kts: 44, gusts_kts: 58, wave_height_m: 6.5, pressure_hpa: 988, status: "Heavy High Seas Alert", color: "#ef4444" },
-  { id: "drake_gale", name: "Furious Fifties Cape Horn Gale", type: "Antarctic Low Pressure", lat: -56.5, lon: -65.0, radius_km: 400, wind_kts: 55, gusts_kts: 72, wave_height_m: 7.8, pressure_hpa: 968, status: "Storm Warning Force 10", color: "#ef4444" }
-];
-
-// Worldwide Live Weather Buoys (24 Stations Across All Global Oceans)
-const LIVE_WEATHER_BUOYS = [
-  // APAC & Pacific
-  { id: "BUOY-21401", name: "East China Sea Buoy #21401", lat: 29.5, lon: 124.2, wave_m: 1.8, wind_kts: 14.2, temp_c: 22.4, press_hpa: 1013 },
-  { id: "BUOY-52003", name: "South China Sea Deep Buoy #52003", lat: 15.2, lon: 114.5, wave_m: 3.4, wind_kts: 26.5, temp_c: 28.1, press_hpa: 1004 },
-  { id: "BUOY-21418", name: "Philippine Sea Deepwater #21418", lat: 18.5, lon: 133.0, wave_m: 4.6, wind_kts: 32.0, temp_c: 28.9, press_hpa: 998 },
-  { id: "BUOY-51001", name: "Hawaiian Ridge Deep Ocean #51001", lat: 24.4, lon: -162.0, wave_m: 2.1, wind_kts: 15.0, temp_c: 25.3, press_hpa: 1016 },
-  { id: "BUOY-46001", name: "Gulf of Alaska Ocean Buoy #46001", lat: 56.3, lon: -148.2, wave_m: 3.8, wind_kts: 24.5, temp_c: 9.8, press_hpa: 1002 },
-  { id: "BUOY-46042", name: "California Offshore Buoy #46042", lat: 36.8, lon: -122.4, wave_m: 2.0, wind_kts: 12.0, temp_c: 15.6, press_hpa: 1014 },
-  { id: "BUOY-55012", name: "Coral Sea Great Barrier #55012", lat: -16.8, lon: 150.2, wave_m: 1.5, wind_kts: 14.0, temp_c: 26.8, press_hpa: 1012 },
-
-  // Indian Ocean & Middle East
-  { id: "BUOY-23001", name: "Malacca Strait Gateway #23001", lat: 4.5, lon: 98.2, wave_m: 1.1, wind_kts: 9.0, temp_c: 29.5, press_hpa: 1010 },
-  { id: "BUOY-23401", name: "Sri Lanka Deepwater #23401", lat: 5.8, lon: 82.5, wave_m: 2.4, wind_kts: 18.0, temp_c: 28.8, press_hpa: 1009 },
-  { id: "BUOY-53002", name: "Arabian Sea Central #53002", lat: 15.0, lon: 65.0, wave_m: 2.9, wind_kts: 22.0, temp_c: 27.2, press_hpa: 1008 },
-  { id: "BUOY-62001", name: "Gulf of Aden Gateway #62001", lat: 12.8, lon: 45.0, wave_m: 1.9, wind_kts: 16.5, temp_c: 30.1, press_hpa: 1011 },
-  { id: "BUOY-56001", name: "Java Sea Deepwater Buoy #56001", lat: -5.4, lon: 110.2, wave_m: 1.3, wind_kts: 11.0, temp_c: 29.0, press_hpa: 1011 },
-
-  // Atlantic & Europe
-  { id: "BUOY-62145", name: "Europort North Sea Buoy #62145", lat: 52.2, lon: 3.8, wave_m: 1.4, wind_kts: 13.0, temp_c: 13.8, press_hpa: 1015 },
-  { id: "BUOY-62107", name: "English Channel Ushant #62107", lat: 48.8, lon: -5.2, wave_m: 2.8, wind_kts: 21.0, temp_c: 14.2, press_hpa: 1002 },
-  { id: "BUOY-61002", name: "Central Mediterranean Buoy #61002", lat: 36.2, lon: 18.5, wave_m: 1.2, wind_kts: 11.0, temp_c: 21.0, press_hpa: 1016 },
-  { id: "BUOY-62029", name: "Gibraltar West Approach #62029", lat: 35.8, lon: -7.2, wave_m: 1.7, wind_kts: 15.0, temp_c: 19.5, press_hpa: 1018 },
-  { id: "BUOY-41044", name: "Mid-Atlantic Ridge Buoy #41044", lat: 21.6, lon: -58.6, wave_m: 3.1, wind_kts: 20.0, temp_c: 27.0, press_hpa: 1014 },
-  { id: "BUOY-41048", name: "Bermuda Deepwater Buoy #41048", lat: 31.9, lon: -69.6, wave_m: 2.6, wind_kts: 17.5, temp_c: 23.4, press_hpa: 1017 },
-  { id: "BUOY-42001", name: "Gulf of Mexico Central #42001", lat: 25.9, lon: -89.7, wave_m: 1.6, wind_kts: 13.5, temp_c: 26.2, press_hpa: 1015 },
-  { id: "BUOY-42058", name: "Caribbean Sea Central #42058", lat: 14.9, lon: -74.9, wave_m: 2.2, wind_kts: 18.0, temp_c: 28.4, press_hpa: 1011 },
-
-  // Southern Oceans & South Atlantic
-  { id: "BUOY-17001", name: "Cape of Good Hope Buoy #17001", lat: -34.8, lon: 18.2, wave_m: 4.2, wind_kts: 28.0, temp_c: 16.2, press_hpa: 1010 },
-  { id: "BUOY-32302", name: "Drake Passage Antarctic #32302", lat: -58.2, lon: -62.4, wave_m: 5.6, wind_kts: 38.0, temp_c: 2.1, press_hpa: 982 }
-];
-
-// Worldwide Live Commercial AIS Marine Fleet (36 Vessels Active Globally)
-const LIVE_AIS_VESSELS = [
-  // Asia-Europe Trade Lane
-  { name: "MSC IRINA", type: "Container (ULCV 24,346 TEU)", imo: "9929429", mmsi: "636021832", flag: "🇱🇷 Liberia", lat: 27.8, lon: 122.5, course: 195, speed: 19.8, dest: "SGSIN (Singapore)", eta: "Oct 01 08:00" },
-  { name: "EVER GIVEN", type: "Container (ULCV 20,124 TEU)", imo: "9811000", mmsi: "353136000", flag: "🇵🇦 Panama", lat: 18.2, lon: 116.4, course: 220, speed: 18.5, dest: "NLRTM (Rotterdam)", eta: "Oct 14 16:30" },
-  { name: "CMA CGM JACQUES SAADÉ", type: "Container LNG (23,000 TEU)", imo: "9839179", mmsi: "228388600", flag: "🇫🇷 France", lat: 1.18, lon: 104.2, course: 285, speed: 12.4, dest: "EGPSD (Port Said)", eta: "Oct 08 04:00" },
-  { name: "MADRID MAERSK", type: "Container Triple-E (20,568 TEU)", imo: "9778791", mmsi: "219836000", flag: "🇩🇰 Denmark", lat: 6.2, lon: 81.2, course: 275, speed: 20.4, dest: "AEJEA (Dubai)", eta: "Oct 04 22:00" },
-  { name: "OOCL SPAIN", type: "Container (ULCV 24,188 TEU)", imo: "9942738", mmsi: "477833800", flag: "🇭🇰 Hong Kong", lat: 11.5, lon: 58.4, course: 290, speed: 19.2, dest: "NLRTM (Rotterdam)", eta: "Oct 12 11:00" },
-  { name: "HMM ALGECIRAS", type: "Container (ULCV 23,964 TEU)", imo: "9863297", mmsi: "351394000", flag: "🇵🇦 Panama", lat: 13.1, lon: 43.8, course: 320, speed: 17.6, dest: "DEHAM (Hamburg)", eta: "Oct 15 19:00" },
-  { name: "COSCO SHIPPING UNIVERSE", type: "Container (ULCV 21,237 TEU)", imo: "9795610", mmsi: "477180700", flag: "🇭🇰 Hong Kong", lat: 25.4, lon: 36.1, course: 335, speed: 18.1, dest: "EGSUE (Suez)", eta: "Sep 28 06:00" },
-  { name: "ONE INGENUITY", type: "Container (ULCV 24,136 TEU)", imo: "9937321", mmsi: "352003291", flag: "🇯🇵 Japan", lat: 34.8, lon: 23.4, course: 285, speed: 19.5, dest: "ESVLC (Valencia)", eta: "Oct 03 14:00" },
-  { name: "APL MERLION", type: "Container (13,892 TEU)", imo: "9631967", mmsi: "566232000", flag: "🇸🇬 Singapore", lat: 50.1, lon: -0.8, course: 65, speed: 16.8, dest: "NLRTM (Rotterdam)", eta: "Sep 27 02:00" },
-
-  // Trans-Pacific Corridors (Asia to US West Coast & Pacific Rim)
-  { name: "MSC TESSA", type: "Container (ULCV 24,116 TEU)", imo: "9929417", mmsi: "636021816", flag: "🇱🇷 Liberia", lat: 34.2, lon: 155.0, course: 82, speed: 20.2, dest: "USLAX (Los Angeles)", eta: "Oct 06 14:00" },
-  { name: "EVER ARM", type: "Container (24,004 TEU)", imo: "9893943", mmsi: "352001229", flag: "🇹🇼 Taiwan", lat: 33.1, lon: -140.5, course: 95, speed: 19.4, dest: "USLGB (Long Beach)", eta: "Oct 02 18:00" },
-  { name: "COSCO PRIDE", type: "Container (13,386 TEU)", imo: "9448762", mmsi: "477757300", flag: "🇭🇰 Hong Kong", lat: 35.8, lon: 168.4, course: 78, speed: 18.8, dest: "USOAK (Oakland)", eta: "Oct 07 20:00" },
-  { name: "ONE APUS", type: "Container (14,052 TEU)", imo: "9806079", mmsi: "353461000", flag: "🇯🇵 Japan", lat: 31.5, lon: -128.2, course: 105, speed: 18.0, dest: "USLAX (Los Angeles)", eta: "Sep 29 12:00" },
-  { name: "SM BUSAN", type: "Container (6,655 TEU)", imo: "9312755", mmsi: "440128000", flag: "🇰🇷 S. Korea", lat: 45.2, lon: 170.0, course: 85, speed: 17.5, dest: "CAVAN (Vancouver)", eta: "Oct 04 06:00" },
-
-  // Trans-Atlantic & Caribbean
-  { name: "MAERSK MC-KINNEY MOLLER", type: "Container Triple-E (18,270 TEU)", imo: "9619907", mmsi: "219018271", flag: "🇩🇰 Denmark", lat: 44.5, lon: -38.2, course: 260, speed: 19.0, dest: "USNYC (New York)", eta: "Oct 03 16:00" },
-  { name: "CMA CGM MARCO POLO", type: "Container (16,020 TEU)", imo: "9454436", mmsi: "228029600", flag: "🇫🇷 France", lat: 38.2, lon: -54.0, course: 275, speed: 18.4, dest: "USSAV (Savannah)", eta: "Oct 05 09:00" },
-  { name: "HAPAG-LLOYD BERLIN EXPRESS", type: "Container LNG (23,664 TEU)", imo: "9540118", mmsi: "211333000", flag: "🇩🇪 Germany", lat: 46.2, lon: -22.5, course: 255, speed: 19.8, dest: "USNYC (New York)", eta: "Oct 02 22:00" },
-  { name: "MSC VALENTINA", type: "Container (14,028 TEU)", imo: "9839296", mmsi: "355938000", flag: "🇵🇦 Panama", lat: 14.8, lon: -72.0, course: 245, speed: 17.2, dest: "PACON (Colon)", eta: "Sep 29 18:00" },
-
-  // Middle East / Persian Gulf / Tankers & LNG
-  { name: "TI OCEANIA", type: "Crude Tanker (ULCC 441k DWT)", imo: "9246633", mmsi: "538001602", flag: "🇲🇭 Marshall Is", lat: 24.6, lon: 56.2, course: 125, speed: 15.0, dest: "CNSHA (Shanghai)", eta: "Oct 10 09:00" },
-  { name: "AL DAFNA", type: "LNG Carrier Q-Max (266k m³)", imo: "9443683", mmsi: "538003444", flag: "🇲🇭 Marshall Is", lat: 22.0, lon: 61.5, course: 110, speed: 18.2, dest: "JPYOK (Tokyo)", eta: "Oct 08 14:00" },
-  { name: "FRONT ALTAIR", type: "Crude Tanker (VLCC 300k DWT)", imo: "9745902", mmsi: "538007204", flag: "🇲🇭 Marshall Is", lat: 18.2, lon: 66.8, course: 135, speed: 14.8, dest: "SGSIN (Singapore)", eta: "Oct 06 18:00" },
-  { name: "BW PIONEER", type: "LPG Tanker (84,000 m³)", imo: "9683984", mmsi: "563045000", flag: "🇸🇬 Singapore", lat: 12.2, lon: 52.0, course: 95, speed: 16.5, dest: "INNSA (Mumbai)", eta: "Sep 30 11:00" },
-
-  // Bulk Ore Carriers & Capesize
-  { name: "BERGE EVEREST", type: "Bulk Carrier (VLOC 388k DWT)", imo: "9447536", mmsi: "235086812", flag: "🇮🇲 Isle of Man", lat: 36.4, lon: -4.8, course: 260, speed: 14.2, dest: "NLRTM (Rotterdam)", eta: "Sep 30 18:00" },
-  { name: "VALE BRASIL", type: "Valemax VLOC (400k DWT)", imo: "9488918", mmsi: "538004183", flag: "🇲🇭 Marshall Is", lat: -18.5, lon: -35.2, course: 15, speed: 14.0, dest: "CNNBO (Ningbo)", eta: "Oct 25 08:00" },
-  { name: "STELLA DAPHNE", type: "Capesize Bulker (180k DWT)", imo: "9583720", mmsi: "354673000", flag: "🇵🇦 Panama", lat: -18.2, lon: 112.5, course: 345, speed: 13.8, dest: "CNSHA (Shanghai)", eta: "Oct 08 20:00" },
-
-  // Mediterranean & Intra-European Feeders
-  { name: "GRIMALDI GRANDE NIGERIA", type: "Ro-Ro / Car Carrier", imo: "9246580", mmsi: "247087200", flag: "🇮🇹 Italy", lat: 37.5, lon: 14.2, course: 290, speed: 17.0, dest: "ESVLC (Valencia)", eta: "Sep 28 14:00" },
-  { name: "UNIFEEDER HEINRICH S", type: "Feeder Container (1,025 TEU)", imo: "9187904", mmsi: "211284530", flag: "🇩🇪 Germany", lat: 54.8, lon: 8.2, course: 45, speed: 15.2, dest: "SEGOT (Gothenburg)", eta: "Sep 27 19:00" }
-];
-
-// Worldwide Port Anchorage Roads & Waiting Queues
-const LIVE_PORT_ANCHORAGES = [
-  { name: "Port of Shanghai Outer Anchorage", lat: 31.05, lon: 122.55, vessels_waiting: 45, avg_dwell_hrs: 24.2, status: "Moderate Staging" },
-  { name: "Singapore Eastern Anchorage (OPL)", lat: 1.25, lon: 103.92, vessels_waiting: 38, avg_dwell_hrs: 18.4, status: "High Density Queue" },
-  { name: "Port Said / Suez North Convoy Roads", lat: 31.35, lon: 32.35, vessels_waiting: 22, avg_dwell_hrs: 12.0, status: "Suez Convoy Staging" },
-  { name: "Suez Canal South Entry Anchorage", lat: 29.80, lon: 32.55, vessels_waiting: 18, avg_dwell_hrs: 10.5, status: "Northbound Staging" },
-  { name: "Jebel Ali Outer Anchorage", lat: 25.10, lon: 54.95, vessels_waiting: 14, avg_dwell_hrs: 8.5, status: "Nominal Berthing" },
-  { name: "Rotterdam Maas Center Anchorage", lat: 52.02, lon: 3.90, vessels_waiting: 11, avg_dwell_hrs: 6.0, status: "Smooth Clearance" },
-  { name: "Los Angeles San Pedro Bay Roads", lat: 33.68, lon: -118.20, vessels_waiting: 16, avg_dwell_hrs: 14.0, status: "Berth Queuing" },
-  { name: "New York Ambrose Outer Anchorage", lat: 40.50, lon: -73.85, vessels_waiting: 9, avg_dwell_hrs: 7.5, status: "Clear Passage" },
-  { name: "Panama Canal Balboa Pacific Roads", lat: 8.88, lon: -79.52, vessels_waiting: 15, avg_dwell_hrs: 16.0, status: "Canal Transit Queue" }
-];
-
 // UI Notification Toast
 function escapeHTML(value) {
   return String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;')
@@ -336,11 +221,6 @@ function initMap() {
     state.weatherLayerGroup = L.layerGroup().addTo(state.map);
     state.trafficLayerGroup = L.layerGroup().addTo(state.map);
 
-    // Render Global Live Overlays
-    renderLiveWeatherLayer();
-    renderLiveTrafficLayer();
-    startAISFleetSimulation();
-
     // Layer switcher control in top right
     const baseLayers = {
       "Dark Oceanic (Default)": darkCanvas,
@@ -349,9 +229,7 @@ function initMap() {
     };
 
     const overlayLayers = {
-      "Global Seaports & Terminals": state.portsLayerGroup,
-      "Weather Radar & Storms": state.weatherLayerGroup,
-      "AIS Marine Traffic & Fleets": state.trafficLayerGroup
+      "Global Seaports & Terminals": state.portsLayerGroup
     };
 
     L.control.layers(baseLayers, overlayLayers, { position: 'topright' }).addTo(state.map);
@@ -371,199 +249,61 @@ function initMap() {
   }
 }
 
-// Render Global Live Weather Radar Layer (Storm Zones & Buoys Worldwide)
-function renderLiveWeatherLayer() {
-  if (!state.weatherLayerGroup) return;
+function renderMarineOverlays() {
+  if (!state.map) return;
   state.weatherLayerGroup.clearLayers();
-
-  // 1. Worldwide Storm & Swell Danger Zones
-  LIVE_WEATHER_STORMS.forEach(storm => {
-    const outerCircle = L.circle([storm.lat, storm.lon], {
-      radius: storm.radius_km * 1000,
-      color: storm.color,
-      fillColor: storm.color,
-      fillOpacity: 0.10,
-      weight: 1.5,
-      dashArray: '5, 5'
-    });
-
-    const innerCircle = L.circle([storm.lat, storm.lon], {
-      radius: (storm.radius_km * 1000) * 0.45,
-      color: storm.color,
-      fillColor: storm.color,
-      fillOpacity: 0.25,
-      weight: 2
-    });
-
-    const stormIcon = L.divIcon({
-      className: 'storm-center-icon',
-      html: `<div style="position:relative; width:36px; height:36px; display:flex; align-items:center; justify-content:center;">
-               <div class="radar-pulse-ring" style="border-color: ${storm.color};"></div>
-               <div style="width:24px; height:24px; border-radius:50%; background:rgba(6,16,28,0.92); border:2px solid ${storm.color}; display:flex; align-items:center; justify-content:center; box-shadow:0 0 12px ${storm.color};">
-                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${storm.color}" stroke-width="2.5">
-                   <path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
-                 </svg>
-               </div>
-             </div>`,
-      iconSize: [36, 36],
-      iconAnchor: [18, 18]
-    });
-
-    const popupHtml = `
-      <div class="maritime-popup">
-        <div class="maritime-popup-title">
-          <span>🌀 ${storm.name}</span>
-          <span class="maritime-popup-badge badge-storm">${storm.status}</span>
-        </div>
-        <div class="maritime-popup-grid">
-          <div><span>Sustained Wind:</span> <strong>${storm.wind_kts} kts</strong></div>
-          <div><span>Wind Gusts:</span> <strong>${storm.gusts_kts} kts</strong></div>
-          <div><span>Significant Wave:</span> <strong>${storm.wave_height_m} m</strong></div>
-          <div><span>Central Pressure:</span> <strong>${storm.pressure_hpa} hPa</strong></div>
-          <div><span>Hazard Radius:</span> <strong>${storm.radius_km} km</strong></div>
-          <div><span>Route Action:</span> <strong style="color:#ef4444;">Bypass Safe Corridor</strong></div>
-        </div>
-      </div>
-    `;
-
-    const stormMarker = L.marker([storm.lat, storm.lon], { icon: stormIcon }).bindPopup(popupHtml);
-
-    state.weatherLayerGroup.addLayer(outerCircle);
-    state.weatherLayerGroup.addLayer(innerCircle);
-    state.weatherLayerGroup.addLayer(stormMarker);
-  });
-
-  // 2. Global Oceanic Weather Buoys
-  LIVE_WEATHER_BUOYS.forEach(buoy => {
-    const buoyIcon = L.divIcon({
-      className: 'weather-buoy-icon',
-      html: `<div style="display:flex; align-items:center; gap:4px; background:rgba(6,16,28,0.88); border:1px solid rgba(253,166,10,0.6); border-radius:12px; padding:2px 6px; box-shadow:0 2px 8px rgba(0,0,0,0.6);">
-               <span style="width:7px; height:7px; border-radius:50%; background:#fda60a; animation:pulse-dot 1.2s infinite;"></span>
-               <span style="font-size:10px; font-family:'DM Mono',monospace; color:#fde047; font-weight:700;">${buoy.wave_m}m</span>
-             </div>`,
-      iconSize: [54, 20],
-      iconAnchor: [27, 10]
-    });
-
-    const popupHtml = `
-      <div class="maritime-popup">
-        <div class="maritime-popup-title">
-          <span>📡 ${buoy.name}</span>
-          <span class="maritime-popup-badge badge-buoy">SIMULATED BUOY</span>
-        </div>
-        <div class="maritime-popup-grid">
-          <div><span>Wave Height:</span> <strong>${buoy.wave_m} m (Significant)</strong></div>
-          <div><span>Surface Wind:</span> <strong>${buoy.wind_kts} knots</strong></div>
-          <div><span>Sea Surface Temp:</span> <strong>${buoy.temp_c} °C</strong></div>
-          <div><span>Barometric Press:</span> <strong>${buoy.press_hpa} hPa</strong></div>
-          <div><span>Sensor Status:</span> <strong style="color:#3bf6c5;">Transmitting Nominal</strong></div>
-          <div><span>Data Stream:</span> <strong>Open-Meteo / NOAA</strong></div>
-        </div>
-      </div>
-    `;
-
-    const buoyMarker = L.marker([buoy.lat, buoy.lon], { icon: buoyIcon }).bindPopup(popupHtml);
-    state.weatherLayerGroup.addLayer(buoyMarker);
-  });
-}
-
-// Render Global Live AIS Marine Traffic Layer (36 Vessels & Anchorages)
-function renderLiveTrafficLayer() {
-  if (!state.trafficLayerGroup) return;
   state.trafficLayerGroup.clearLayers();
-  state.aisMarkers = [];
-
-  // 1. AIS Commercial Container Ships & Fleets Across All Global Lanes (Compact Glowing Dots)
-  LIVE_AIS_VESSELS.forEach((vessel, idx) => {
-    const shipIcon = L.divIcon({
-      className: `ais-ship-icon ais-ship-${idx}`,
-      html: `<div class="ais-ship-dot" style="position: relative; width: 12px; height: 12px; display: flex; align-items: center; justify-content: center;">
-               <div style="position: absolute; inset: -3px; border-radius: 50%; background: rgba(19, 214, 232, 0.25); animation: pulse-ship-dot 2.5s infinite;"></div>
-               <div style="width: 7px; height: 7px; border-radius: 50%; background: #13d6e8; border: 1.5px solid #06101c; box-shadow: 0 0 6px #13d6e8;"></div>
-             </div>`,
-      iconSize: [12, 12],
-      iconAnchor: [6, 6]
-    });
-
-    const getPopupContent = (v) => `
-      <div class="maritime-popup">
-        <div class="maritime-popup-title">
-          <span>🚢 ${v.name}</span>
-          <span class="maritime-popup-badge badge-vessel">SIMULATED AIS</span>
-        </div>
-        <div class="maritime-popup-grid">
-          <div><span>Type:</span> <strong>${v.type}</strong></div>
-          <div><span>Flag / Registry:</span> <strong>${v.flag}</strong></div>
-          <div><span>Speed Over Ground:</span> <strong>${v.speed.toFixed(1)} kn</strong></div>
-          <div><span>Course / Heading:</span> <strong>${Math.round(v.course)}° True</strong></div>
-          <div><span>Current Position:</span> <strong>${v.lat.toFixed(3)}°, ${v.lon.toFixed(3)}°</strong></div>
-          <div><span>Destination:</span> <strong>${v.dest}</strong></div>
-          <div><span>Estimated Arrival:</span> <strong>${v.eta}</strong></div>
-          <div><span>IMO / MMSI:</span> <strong>${v.imo} / ${v.mmsi}</strong></div>
-          <div><span>Nav Status:</span> <strong style="color:#3bf6c5;">Underway · Dynamic Track</strong></div>
-        </div>
-      </div>
-    `;
-
-    const shipMarker = L.marker([vessel.lat, vessel.lon], { icon: shipIcon }).bindPopup(getPopupContent(vessel));
-    state.trafficLayerGroup.addLayer(shipMarker);
-    state.aisMarkers.push({ marker: shipMarker, vessel: vessel, idx: idx });
-  });
-
-  // 2. Global Port Anchorages & Staging Queue Badges
-  LIVE_PORT_ANCHORAGES.forEach(anch => {
-    const anchIcon = L.divIcon({
-      className: 'anchorage-badge',
-      html: `<div style="display:flex; align-items:center; gap:5px; background:rgba(6,16,28,0.92); border:1px solid rgba(19,214,232,0.5); border-radius:6px; padding:2px 6px; box-shadow:0 2px 10px rgba(0,0,0,0.6);">
-               <span style="color:#13d6e8; font-size:11px;">⚓</span>
-               <span style="color:#dcecf0; font-size:10px; font-weight:700; font-family:'DM Mono',monospace;">${anch.vessels_waiting} Ships</span>
-             </div>`,
-      iconSize: [75, 22],
-      iconAnchor: [37, 11]
-    });
-
-    const popupHtml = `
-      <div class="maritime-popup">
-        <div class="maritime-popup-title">
-          <span>⚓ ${anch.name}</span>
-          <span class="maritime-popup-badge badge-vessel">ANCHORAGE</span>
-        </div>
-        <div class="maritime-popup-grid">
-          <div><span>Vessels at Anchor:</span> <strong>${anch.vessels_waiting} container / tankers</strong></div>
-          <div><span>Average Dwell:</span> <strong>${anch.avg_dwell_hrs} hours</strong></div>
-          <div><span>Congestion Status:</span> <strong style="color:${anch.vessels_waiting > 20 ? '#fda60a' : '#3bf6c5'};">${anch.status}</strong></div>
-          <div><span>Berth Coordination:</span> <strong>VTS Automated</strong></div>
-        </div>
-      </div>
-    `;
-
-    const anchMarker = L.marker([anch.lat, anch.lon], { icon: anchIcon }).bindPopup(popupHtml);
-    state.trafficLayerGroup.addLayer(anchMarker);
-  });
+  for (const sample of state.weatherSamples) {
+    const point = [sample.lat, sample.lon];
+    const color = sample.radius_km ? '#f59e0b' : '#22d3ee';
+    if (sample.radius_km) {
+      L.circle(point, { radius: sample.radius_km * 1000, color, dashArray: '5 5', fillOpacity: 0.12 })
+        .addTo(state.weatherLayerGroup);
+    }
+    const waves = sample.wave_height_m == null ? 'Unavailable' : `${Number(sample.wave_height_m)} m`;
+    const wind = sample.wind_kts == null ? 'Unavailable' : `${Number(sample.wind_kts)} kt`;
+    L.circleMarker(point, { radius: 7, color: '#e0faff', weight: 2, fillColor: color, fillOpacity: 0.95 })
+      .bindPopup(`<strong>${escapeHTML(sample.name)}</strong><br>Significant waves: ${waves}<br>Wind: ${wind}<br>Open-Meteo forecast`)
+      .addTo(state.weatherLayerGroup);
+  }
+  for (const vessel of state.vessels) {
+    const speed = vessel.speed_kts == null ? 'Unavailable' : `${vessel.speed_kts} kt`;
+    L.circleMarker([vessel.lat, vessel.lon], {
+      radius: 6, color: '#e0faff', weight: 2,
+      fillColor: vessel.anchored ? '#fbbf24' : '#34d399', fillOpacity: 0.95
+    }).bindPopup(`<strong>AIS MMSI ${vessel.mmsi}</strong><br>${vessel.anchored ? 'Reported at anchor' : 'Position report'}<br>Speed: ${speed}`)
+      .addTo(state.trafficLayerGroup);
+  }
 }
 
-// Continuous Dynamic Live AIS Fleet Navigation Loop
-function startAISFleetSimulation() {
-  if (state.aisFleetTimer) clearInterval(state.aisFleetTimer);
-
-  state.aisFleetTimer = setInterval(() => {
-    if (!state.aisMarkers || state.aisMarkers.length === 0) return;
-
-    state.aisMarkers.forEach(item => {
-      const v = item.vessel;
-      const rad = (v.course * Math.PI) / 180;
-      const speedStep = 0.003 * (v.speed / 20.0);
-
-      v.lat += Math.cos(rad) * speedStep;
-      v.lon += (Math.sin(rad) * speedStep) / Math.max(0.1, Math.cos((v.lat * Math.PI) / 180));
-
-      v.course = (v.course + (Math.random() - 0.5) * 0.4 + 360) % 360;
-
-      if (item.marker) {
-        item.marker.setLatLng([v.lat, v.lon]);
-      }
-    });
-  }, 1500);
+async function refreshMarineOverlays() {
+  let weatherLabel = 'Weather unavailable';
+  let trafficLabel = 'AIS unavailable';
+  try {
+    const response = await fetch('/api/live_overlay', { cache: 'no-store', signal: AbortSignal.timeout(5000) });
+    if (!response.ok) throw new Error('Marine feeds unavailable');
+    const { weather, traffic } = await response.json();
+    state.weatherSamples = weather.samples;
+    state.vessels = traffic.vessels;
+    weatherLabel = {
+      live: `Open-Meteo · ${weather.samples.length} samples · ${weather.samples.filter(sample => sample.radius_km > 0).length} rough-weather zones`,
+      loading: 'Loading marine weather',
+      stale: 'Weather refresh failed · recent samples retained'
+    }[weather.status] || weatherLabel;
+    trafficLabel = {
+      live: `AISStream · ${traffic.vessels.length} vessels · ${traffic.vessels.filter(vessel => vessel.anchored).length} at anchor`,
+      connecting: 'Waiting for AIS reports',
+      not_configured: 'Live traffic unavailable · AISStream key required',
+      dependency_missing: 'AIS WebSocket dependency missing'
+    }[traffic.status] || (traffic.vessels.length ? 'AIS disconnected · recent reports retained' : trafficLabel);
+  } catch {
+    state.weatherSamples = [];
+    state.vessels = [];
+  }
+  renderMarineOverlays();
+  const status = document.getElementById('marine-feed-status');
+  const label = `${weatherLabel} · ${trafficLabel}`;
+  if (status.textContent !== label) status.textContent = label;
 }
 
 // Toggle Live Weather Layer
@@ -576,13 +316,11 @@ function toggleWeatherLayer(forceState) {
       state.map.addLayer(state.weatherLayerGroup);
     }
     if (btn) btn.classList.add('active');
-    showToast("Weather Radar Enabled", "info", "Displaying simulated storms and marine buoys.");
   } else {
     if (state.map && state.weatherLayerGroup && state.map.hasLayer(state.weatherLayerGroup)) {
       state.map.removeLayer(state.weatherLayerGroup);
     }
     if (btn) btn.classList.remove('active');
-    showToast("Weather Radar Disabled", "info", "Simulated weather layer hidden.");
   }
   runOptimization();
 }
@@ -597,13 +335,11 @@ function toggleTrafficLayer(forceState) {
       state.map.addLayer(state.trafficLayerGroup);
     }
     if (btn) btn.classList.add('active');
-    showToast("Simulated AIS Layer Enabled", "info", "Displaying simulated vessel positions and port anchorages.");
   } else {
     if (state.map && state.trafficLayerGroup && state.map.hasLayer(state.trafficLayerGroup)) {
       state.map.removeLayer(state.trafficLayerGroup);
     }
     if (btn) btn.classList.remove('active');
-    showToast("Simulated AIS Layer Disabled", "info", "Simulated vessel layer hidden.");
   }
   runOptimization();
 }
@@ -1287,13 +1023,13 @@ async function runOptimization() {
 
   const overlays = {
     road_rate: document.getElementById('road-rate').valueAsNumber,
+    sea_rate: document.getElementById('sea-rate').valueAsNumber,
+    transfer_cost: document.getElementById('transfer-cost').valueAsNumber,
     operating_rate: document.getElementById('operating-rate').valueAsNumber,
     currents: state.useCurrents,
-    storms: state.showWeather ? LIVE_WEATHER_STORMS.map(({lat, lon, radius_km}) => ({lat, lon, radius_km})) : [],
-    vessels: state.showTraffic ? LIVE_AIS_VESSELS.map(({lat, lon}) => ({
-      lat: Math.max(-90, Math.min(90, lat)),
-      lon: ((lon % 360) + 540) % 360 - 180
-    })) : []
+    storms: state.showWeather ? state.weatherSamples.filter(sample => sample.radius_km)
+      .map(({lat, lon, radius_km}) => ({lat, lon, radius_km})) : [],
+    vessels: state.showTraffic ? state.vessels.map(({lat, lon}) => ({lat, lon})) : []
   };
   const payload = {
     ...overlays,
@@ -1428,10 +1164,12 @@ function updateIntelligence(data) {
   const roadDistance = (data.road_legs || []).reduce((total, leg) => total + leg.distance_km, 0);
   document.getElementById('summary-road-row').hidden = roadDistance === 0;
   document.getElementById('summary-road').textContent = `${roadDistance.toLocaleString(undefined, format)} km`;
+  const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+  document.getElementById('summary-transfer').textContent = data.total_transfer_cost == null ? '—' :
+    `${usd.format(data.total_transfer_cost)} · ${data.mode_switches} transfers`;
   document.getElementById('summary-transit').textContent = `${data.total_transit_hours.toLocaleString(undefined, format)} h`;
-  document.getElementById('summary-fuel').textContent = data.fuel_cost.toLocaleString(undefined, {
-    style: 'currency', currency: 'USD'
-  });
+  document.getElementById('summary-total-cost').textContent = usd.format(data.total_cost);
+  document.getElementById('summary-fuel').textContent = usd.format(data.fuel_cost);
   document.getElementById('summary-waypoints').textContent = data.nodes.length.toLocaleString();
   document.getElementById('summary-marine-model').textContent = data.marine_model || 'Off';
   document.getElementById('summary-objective').textContent = data.requested_engine === 'astar'
@@ -1787,14 +1525,6 @@ function setupEvents() {
     });
   }
 
-  // Live Clock
-  setInterval(() => {
-    const clock = document.getElementById('ais-timestamp');
-    if (clock) {
-      const now = new Date();
-      clock.textContent = `${now.toISOString().substring(11, 19)} UTC`;
-    }
-  }, 1000);
 }
 
 // App Initialization
@@ -1802,7 +1532,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderItinerary(null);
   initMap();
   setupEvents();
-  await loadPorts();
+  await Promise.all([loadPorts(), refreshMarineOverlays()]);
+  setInterval(refreshMarineOverlays, 15000);
   try {
     const health = await fetch('/api/health');
     if (health.ok && (await health.json()).mpi_ready) {

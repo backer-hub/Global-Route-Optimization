@@ -171,6 +171,8 @@ __global__ void computePermutationFitnessKernel(
     const double* __restrict__ d_cost_matrix,
     const double* __restrict__ d_dist_matrix,
     const double* __restrict__ d_transit_matrix,
+    const int* __restrict__ d_leg_modes,
+    double transfer_cost,
     double* __restrict__ d_out_costs,
     double* __restrict__ d_out_distances,
     double* __restrict__ d_out_transit_hours
@@ -183,6 +185,7 @@ __global__ void computePermutationFitnessKernel(
     double total_dist = 0.0;
     double total_transit = 0.0;
 
+    int previous_mode = -1;
     for (int k = 0; k < permutation_len - 1; ++k) {
         int u_idx = d_flat_permutations[offset + k];
         int v_idx = d_flat_permutations[offset + k + 1];
@@ -190,6 +193,13 @@ __global__ void computePermutationFitnessKernel(
         if (u_idx >= 0 && v_idx >= 0) {
             size_t mat_pos = static_cast<size_t>(u_idx) * matrix_width + v_idx;
             total_cost += d_cost_matrix[mat_pos];
+            if (d_leg_modes) {
+                const int modes = d_leg_modes[mat_pos] - 1;
+                if (modes >= 0) {
+                    if (previous_mode >= 0 && previous_mode != modes / 2) total_cost += transfer_cost;
+                    previous_mode = modes % 2;
+                }
+            }
             if (d_dist_matrix) {
                 total_dist += d_dist_matrix[mat_pos];
             }
@@ -530,6 +540,7 @@ void CUDAFitnessEvaluator::evaluatePermutationPopulation(
     double* d_cost_mat = nullptr;
     double* d_dist_mat = nullptr;
     double* d_transit_mat = nullptr;
+    int* d_leg_modes = nullptr;
     double* d_out_costs = nullptr;
     double* d_out_dist = nullptr;
     double* d_out_transit = nullptr;
@@ -549,12 +560,18 @@ void CUDAFitnessEvaluator::evaluatePermutationPopulation(
     CUDA_CHECK(cudaMemcpy(d_dist_mat, matrix.dist_matrix.data(), mat_size, cudaMemcpyHostToDevice));
     CUDA_CHECK(cudaMemcpy(d_transit_mat, matrix.transit_matrix.data(), mat_size, cudaMemcpyHostToDevice));
 
+    if (!matrix.leg_modes.empty()) {
+        const size_t modes_size = matrix.leg_modes.size() * sizeof(int);
+        CUDA_CHECK(cudaMalloc(&d_leg_modes, modes_size));
+        CUDA_CHECK(cudaMemcpy(d_leg_modes, matrix.leg_modes.data(), modes_size, cudaMemcpyHostToDevice));
+    }
+
     int block_size = 256;
     int grid_size = (pop_size + block_size - 1) / block_size;
 
     computePermutationFitnessKernel<<<grid_size, block_size>>>(
         d_flat_perms, pop_size, perm_len, matrix.node_count,
-        d_cost_mat, d_dist_mat, d_transit_mat,
+        d_cost_mat, d_dist_mat, d_transit_mat, d_leg_modes, matrix.mode_switch_penalty,
         d_out_costs, d_out_dist, d_out_transit
     );
     CUDA_CHECK(cudaDeviceSynchronize());
@@ -571,6 +588,7 @@ void CUDAFitnessEvaluator::evaluatePermutationPopulation(
     cudaFree(d_cost_mat);
     cudaFree(d_dist_mat);
     cudaFree(d_transit_mat);
+    cudaFree(d_leg_modes);
     cudaFree(d_out_costs);
     cudaFree(d_out_dist);
     cudaFree(d_out_transit);
@@ -594,6 +612,7 @@ void CUDAFitnessEvaluator::evaluatePermutationPopulation(
         double total_dist = 0.0;
         double total_transit = 0.0;
 
+        int previous_mode = -1;
         for (int k = 0; k < perm_len - 1; ++k) {
             int u_id = p[k];
             int v_id = p[k + 1];
@@ -601,6 +620,13 @@ void CUDAFitnessEvaluator::evaluatePermutationPopulation(
             int v_idx = matrix.getIndex(v_id);
             if (u_idx >= 0 && v_idx >= 0) {
                 total_cost += matrix.getCost(u_idx, v_idx);
+                if (!matrix.leg_modes.empty()) {
+                    const int modes = matrix.leg_modes[u_idx * matrix.node_count + v_idx] - 1;
+                    if (modes >= 0) {
+                        if (previous_mode >= 0 && previous_mode != modes / 2) total_cost += matrix.mode_switch_penalty;
+                        previous_mode = modes % 2;
+                    }
+                }
                 total_dist += matrix.getDistance(u_idx, v_idx);
                 total_transit += matrix.getTransitHours(u_idx, v_idx);
             } else {

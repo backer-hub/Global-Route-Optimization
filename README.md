@@ -80,7 +80,22 @@ Start the Flask API server:
 python -m pip install -r requirements.txt
 python server.py --port 5000
 ```
-Open **`http://localhost:5000/`** in your browser to interactively view the world map, trigger disruptions, and run live optimizations.
+Open **`http://localhost:5000/`** in your browser to view the map and run route optimization.
+
+### Live marine weather and AIS traffic
+
+Turn on **Marine Weather** to see current-hour wind and wave forecasts from Open-Meteo. Orange circles mark sampled areas with waves of at least 4 m or winds of at least 34 knots. A route that passes through one of those areas gets extra travel time based on how far it travels inside the circle.
+
+To enable AIS Traffic, create a key in [AISStream](https://aisstream.io/) and set it in the PowerShell session that starts the server.
+
+```powershell
+$env:AISSTREAM_API_KEY = Read-Host "AISStream API key" -MaskInput
+python server.py --port 5000
+```
+
+Green markers show recent vessel positions in covered ports and shipping corridors. Yellow markers show vessels that report being at anchor. Reports disappear after 15 minutes. When you run an optimization, the router uses the conditions and vessel positions shown by the enabled layers.
+
+You can change the sea and road rates in the dashboard. The transfer fee applies each time the route switches between sea and road. The voyage total is an estimate based on these rates and the modeled travel time.
 
 ### 4. Run the Standalone Map Visualization Renderer
 

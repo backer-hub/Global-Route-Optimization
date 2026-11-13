@@ -16,11 +16,13 @@ AStarOptimizer::AStarOptimizer(
     double fuel_rate_sea,
     double fuel_rate_road,
     double vessel_speed_kmh,
-    double time_cost_per_hour
+    double time_cost_per_hour,
+    double mode_switch_penalty
 ) : graph_(graph),
     fuel_rate_sea_(fuel_rate_sea),
     fuel_rate_road_(fuel_rate_road),
     time_cost_per_hour_(time_cost_per_hour),
+    mode_switch_penalty_(mode_switch_penalty),
     cost_per_geodesic_km_(std::min(fuel_rate_sea, fuel_rate_road) +
                          time_cost_per_hour / (vessel_speed_kmh > 0.0 ? vessel_speed_kmh : 37.0)) {
     // Bound the heuristic using actual edge weights, including rounded distances.
@@ -76,39 +78,46 @@ AStarResult AStarOptimizer::findOptimalRoute(int origin_id, int dest_id) const {
     }
 
     size_t n = graph_.nodeCount();
-    std::vector<double> g_score(n, std::numeric_limits<double>::infinity());
-    std::vector<int> came_from(n, -1);
-    std::vector<const Edge*> incoming_edge(n, nullptr);
-    std::vector<bool> closed(n, false);
+    // Each arrival mode has its own cost because it affects the next edge.
+    constexpr int mode_count = 3;
+    const int start = origin_id * mode_count + static_cast<int>(TransportMode::UNKNOWN);
+    std::vector<double> g_score(n * mode_count, std::numeric_limits<double>::infinity());
+    std::vector<int> came_from(n * mode_count, -1);
+    std::vector<const Edge*> incoming_edge(n * mode_count, nullptr);
+    std::vector<bool> closed(n * mode_count, false);
 
     // Min-heap priority queue storing pairs of (f_score, node_id)
     typedef std::pair<double, int> PQElement;
     std::priority_queue<PQElement, std::vector<PQElement>, std::greater<PQElement>> open_set;
 
-    g_score[origin_id] = 0.0;
+    g_score[start] = 0.0;
     double initial_f = heuristic(origin_id, dest_id);
-    open_set.push({initial_f, origin_id});
+    open_set.push({initial_f, start});
 
     size_t explored = 0;
-    bool found = false;
+    int goal = -1;
 
     while (!open_set.empty()) {
-        auto [current_f, current_u] = open_set.top();
+        auto [current_f, current_state] = open_set.top();
         open_set.pop();
 
+        const int current_u = current_state / mode_count;
         if (current_u == dest_id) {
-            found = true;
+            goal = current_state;
             break;
         }
 
-        if (closed[current_u]) continue;
-        closed[current_u] = true;
+        if (closed[current_state]) continue;
+        closed[current_state] = true;
         explored++;
 
         const auto& edges = graph_.getOutgoingEdges(current_u);
+        const auto previous_mode = static_cast<TransportMode>(current_state % mode_count);
         for (const auto& edge : edges) {
             int v = edge.dest_id;
-            if (v < 0 || static_cast<size_t>(v) >= n || closed[v]) continue;
+            if (v < 0 || static_cast<size_t>(v) >= n) continue;
+            const int next = v * mode_count + static_cast<int>(edge.mode);
+            if (closed[next]) continue;
 
             const Node* dest_node = graph_.getNode(v);
             double delay = dest_node ? dest_node->congestion_delay : 0.0;
@@ -116,14 +125,17 @@ AStarResult AStarOptimizer::findOptimalRoute(int origin_id, int dest_id) const {
             double edge_fuel_cost = edge.distance_km * fuel_rate;
             double edge_cost = edge_fuel_cost + time_cost_per_hour_ * (edge.base_transit_hours + delay);
 
-            double tentative_g = g_score[current_u] + edge_cost;
+            if (previous_mode != TransportMode::UNKNOWN && previous_mode != edge.mode) {
+                edge_cost += mode_switch_penalty_;
+            }
+            double tentative_g = g_score[current_state] + edge_cost;
 
-            if (tentative_g < g_score[v]) {
-                came_from[v] = current_u;
-                incoming_edge[v] = &edge;
-                g_score[v] = tentative_g;
+            if (tentative_g < g_score[next]) {
+                came_from[next] = current_state;
+                incoming_edge[next] = &edge;
+                g_score[next] = tentative_g;
                 double f = tentative_g + heuristic(v, dest_id);
-                open_set.push({f, v});
+                open_set.push({f, next});
             }
         }
     }
@@ -132,46 +144,29 @@ AStarResult AStarOptimizer::findOptimalRoute(int origin_id, int dest_id) const {
     result.execution_time_ms = std::chrono::duration<double, std::milli>(end_time - start_time).count();
     result.nodes_explored = explored;
 
-    if (!found) {
+    if (goal < 0) {
         result.is_valid = false;
         result.total_cost = std::numeric_limits<double>::infinity();
         return result;
     }
 
-    // Reconstruct optimal path backwards from dest to origin
-    std::vector<int> path;
-    int curr = dest_id;
-    while (curr != -1) {
-        path.push_back(curr);
-        if (curr == origin_id) break;
-        curr = came_from[curr];
-    }
-    std::reverse(path.begin(), path.end());
-    result.path = path;
-
-    // Compute detailed telemetry breakdown along the optimal path
-    TransportMode prev_mode = TransportMode::UNKNOWN;
-    for (size_t i = 0; i < path.size() - 1; ++i) {
-        int v = path[i + 1];
-        const Edge* edge = incoming_edge[v];
-        if (edge) {
-            const Node* dest_node = graph_.getNode(v);
-            double delay = dest_node ? dest_node->congestion_delay : 0.0;
-            double fuel_rate = (edge->mode == TransportMode::SEA) ? fuel_rate_sea_ : fuel_rate_road_;
-            double edge_fuel_cost = edge->distance_km * fuel_rate;
-            double edge_cost = edge_fuel_cost + time_cost_per_hour_ * (edge->base_transit_hours + delay);
-
-            result.total_distance_km += edge->distance_km;
-            result.total_transit_hours += (edge->base_transit_hours + delay);
-            result.fuel_cost += edge_fuel_cost;
-            result.total_cost += edge_cost;
-
-            if (i > 0 && prev_mode != TransportMode::UNKNOWN && edge->mode != prev_mode) {
-                result.mode_switches++;
-            }
-            prev_mode = edge->mode;
+    result.total_cost = g_score[goal];
+    result.path.push_back(dest_id);
+    for (int state = goal; state != start; state = came_from[state]) {
+        const Edge& edge = *incoming_edge[state];
+        const auto* destination = graph_.getNode(edge.dest_id);
+        const double rate = edge.mode == TransportMode::SEA ? fuel_rate_sea_ : fuel_rate_road_;
+        result.path.push_back(edge.source_id);
+        result.total_distance_km += edge.distance_km;
+        result.total_transit_hours += edge.base_transit_hours + destination->congestion_delay;
+        result.fuel_cost += edge.distance_km * rate;
+        if (result.first_mode != TransportMode::UNKNOWN && result.first_mode != edge.mode) {
+            ++result.mode_switches;
         }
+        result.first_mode = edge.mode;
     }
+    result.last_mode = incoming_edge[goal]->mode;
+    std::reverse(result.path.begin(), result.path.end());
 
     result.is_valid = true;
     return result;

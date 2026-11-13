@@ -99,7 +99,8 @@ DynamicCostMatrix DynamicCostMatrix::createFromGraph(
     const std::vector<int>& waypoint_ids,
     double fuel_rate_sea,
     double fuel_rate_road,
-    double time_cost_per_hour
+    double time_cost_per_hour,
+    double mode_switch_penalty
 ) {
     DynamicCostMatrix mat;
     mat.node_count = static_cast<int>(waypoint_ids.size());
@@ -113,7 +114,9 @@ DynamicCostMatrix DynamicCostMatrix::createFromGraph(
     mat.dist_matrix.assign(total_elements, 0.0);
     mat.transit_matrix.assign(total_elements, 0.0);
 
-    AStarOptimizer optimizer(graph, fuel_rate_sea, fuel_rate_road, 37.0, time_cost_per_hour);
+    mat.leg_modes.assign(total_elements, 0);
+    mat.mode_switch_penalty = mode_switch_penalty;
+    AStarOptimizer optimizer(graph, fuel_rate_sea, fuel_rate_road, 37.0, time_cost_per_hour, mode_switch_penalty);
     #pragma omp parallel for schedule(dynamic)
     for (int i = 0; i < mat.node_count; ++i) {
         for (int j = 0; j < mat.node_count; ++j) {
@@ -123,6 +126,9 @@ DynamicCostMatrix DynamicCostMatrix::createFromGraph(
             mat.cost_matrix[index] = leg.is_valid ? leg.total_cost : 1e18;
             mat.dist_matrix[index] = leg.total_distance_km;
             mat.transit_matrix[index] = leg.total_transit_hours;
+            if (leg.is_valid) {
+                mat.leg_modes[index] = 1 + 2 * static_cast<int>(leg.first_mode) + static_cast<int>(leg.last_mode);
+            }
         }
     }
     return mat;
@@ -219,6 +225,7 @@ RouteScore GeneticAlgorithmOptimizer::evaluateTSPPermutation(
     score.sea_legs = static_cast<int>(path.size() - 1);
     score.road_legs = 0;
     score.mode_switches = 0;
+    int previous_mode = -1;
 
     for (size_t i = 0; i < path.size() - 1; ++i) {
         int u_id = path[i];
@@ -237,6 +244,15 @@ RouteScore GeneticAlgorithmOptimizer::evaluateTSPPermutation(
         double dist_km = matrix.getDistance(u_idx, v_idx);
         double transit_hrs = matrix.getTransitHours(u_idx, v_idx);
 
+        if (!matrix.leg_modes.empty()) {
+            const int modes = matrix.leg_modes[u_idx * matrix.node_count + v_idx] - 1;
+            if (modes >= 0) {
+                if (previous_mode >= 0 && previous_mode != modes / 2) {
+                    edge_cost += matrix.mode_switch_penalty;
+                }
+                previous_mode = modes % 2;
+            }
+        }
         score.total_cost += edge_cost;
         score.total_distance_km += dist_km;
         score.total_transit_hours += transit_hrs;
@@ -732,7 +748,7 @@ Individual GeneticAlgorithmOptimizer::optimizeRoute(int origin_id, int dest_id) 
     auto start_time = std::chrono::high_resolution_clock::now();
 
     AStarOptimizer seed_optimizer(graph_, config_.fuel_rate_sea, config_.fuel_rate_road,
-                                  37.0, config_.time_cost_per_hour);
+                                  37.0, config_.time_cost_per_hour, config_.mode_switch_penalty);
     auto seed = seed_optimizer.findOptimalRoute(origin_id, dest_id);
     if (!seed.is_valid) {
         std::cerr << "[GA Error] No navigable path between the requested nodes.\n";

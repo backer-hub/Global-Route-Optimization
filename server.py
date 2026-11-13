@@ -22,6 +22,7 @@ import csv
 import shutil
 from pathlib import Path
 from flask import Flask, request, jsonify, send_from_directory
+from live_marine import feeds
 
 ROOT_DIR = Path(__file__).resolve().parent
 BUILD_DIR = ROOT_DIR / "build"
@@ -325,10 +326,14 @@ def ingest_matrix():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
-@app.route("/api/live_overlay", methods=["GET"])
+@app.get("/api/live_overlay")
+def live_overlay():
+    return jsonify(feeds.snapshot())
+
+
 @app.route("/api/weather", methods=["GET"])
-def get_live_overlay():
-    """Return live weather, wave radar zones, AIS vessel fleets, and port anchorages."""
+def get_matrix_weather():
+    """Return weather used by the saved waypoint matrix."""
     matrix_weather = {}
     observed_at = None
     if DYNAMIC_MATRIX_JSON.exists():
@@ -396,6 +401,12 @@ def optimize_route():
         if not isinstance(sea_only, bool):
             raise ValueError("sea_only must be a boolean")
         road_rate = float(data.get("road_rate", 1.4))
+        sea_rate = float(data.get("sea_rate", 0.6))
+        if not math.isfinite(sea_rate) or not 0 < sea_rate <= 100:
+            raise ValueError("sea_rate must be greater than 0 and at most 100")
+        transfer_cost = float(data.get("transfer_cost", 50.0))
+        if not math.isfinite(transfer_cost) or not 0 <= transfer_cost <= 1000000:
+            raise ValueError("Transfer cost must be between 0 and 1000000")
         operating_rate = float(data.get("operating_rate", 5.0))
         if not math.isfinite(operating_rate) or not 0 <= operating_rate <= 10000:
             raise ValueError("Operating cost per hour must be between 0 and 10000")
@@ -457,9 +468,10 @@ def optimize_route():
             route_file = Path(directory) / "route.json"
             congestion_file = Path(directory) / "congestion.json"
             write_json_atomically(congestion_file, delays)
+            cmd.extend(["--transfer-cost", str(transfer_cost)])
+            cmd.extend(["--sea-rate", str(sea_rate)])
             if network["links"] and not sea_only:
                 cmd.extend(prepare_multimodal_graph(Path(directory), network))
-                cmd.append("--no-mode-switch-penalty")
                 cmd.extend(["--road-rate", str(road_rate)])
             if zones:
                 conditions_file = Path(directory) / "marine-conditions.txt"
@@ -487,6 +499,9 @@ def optimize_route():
         route_data["requested_waypoints"] = waypoints or [origin_id, dest_id]
         route_data["sea_only"] = sea_only
         route_data["road_rate"] = road_rate
+        route_data["sea_rate"] = sea_rate
+        route_data["transfer_cost"] = transfer_cost
+        route_data["total_transfer_cost"] = round(transfer_cost * route_data["mode_switches"], 2)
         links = {(link["source_id"], link["dest_id"]): link for link in network["links"]}
         path = route_data["path"]
         route_data["road_legs"] = [

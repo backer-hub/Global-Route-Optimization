@@ -17,6 +17,8 @@ struct AStarResult {
     double total_transit_hours = 0.0;
     double fuel_cost = 0.0;
     int mode_switches = 0;
+    TransportMode first_mode = TransportMode::UNKNOWN;
+    TransportMode last_mode = TransportMode::UNKNOWN;
     std::vector<int> path;
     double execution_time_ms = 0.0;
     size_t nodes_explored = 0;
@@ -37,7 +39,8 @@ public:
         double fuel_rate_sea = 0.6,
         double fuel_rate_road = 1.4,
         double vessel_speed_kmh = 37.0,
-        double time_cost_per_hour = 1.0
+        double time_cost_per_hour = 1.0,
+        double mode_switch_penalty = 0.0
     );
 
     /**
@@ -58,6 +61,7 @@ private:
     double fuel_rate_sea_;
     double fuel_rate_road_;
     double time_cost_per_hour_;
+    double mode_switch_penalty_;
     double cost_per_geodesic_km_;
 
     /**

@@ -945,3 +945,29 @@
 
 
 
+.marine-feed-status {
+  margin: 0;
+  padding: 6px 14px;
+  color: #9dbed1;
+  font-size: 0.75rem;
+}
+
+.marine-feed-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin-top: 4px;
+}
+
+.marine-feed-legend i {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 3px;
+  border-radius: 50%;
+}
+
+.marine-weather-dot { background: #22d3ee; }
+.marine-rough-dot { background: #f59e0b; }
+.marine-traffic-dot { background: #34d399; }
+.marine-anchor-dot { background: #fbbf24; }

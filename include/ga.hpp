@@ -26,6 +26,10 @@ struct DynamicCostMatrix {
     std::vector<double> dist_matrix;    ///< Flattened N x N physical distances (km)
     std::vector<double> transit_matrix; ///< Flattened N x N transit durations (hours)
 
+    // Nonzero mode codes encode the first and last modes of graph-generated legs.
+    std::vector<int> leg_modes;
+    double mode_switch_penalty = 0.0;
+
     int getIndex(int node_id) const {
         auto it = node_id_to_idx.find(node_id);
         return (it != node_id_to_idx.end()) ? it->second : -1;
@@ -55,7 +59,7 @@ struct DynamicCostMatrix {
     static DynamicCostMatrix loadFromBinary(const std::string& bin_path);
     static DynamicCostMatrix createFromGraph(const MultimodalGraph& graph, const std::vector<int>& waypoint_ids,
                                             double fuel_rate_sea, double fuel_rate_road = 1.4,
-                                            double time_cost_per_hour = 1.0);
+                                            double time_cost_per_hour = 1.0, double mode_switch_penalty = 0.0);
 };
 
 /**
