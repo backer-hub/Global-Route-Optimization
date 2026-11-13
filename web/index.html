@@ -80,7 +80,7 @@
           <!-- Port Selectors -->
           <div class="route-fields">
             <label>
-              <span>ORIGIN SEAPORT</span>
+              <span>ORIGIN PORT OR CITY</span>
               <div class="select-wrap origin-select">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m10 15 5-3-5-3v6Z"/></svg>
                 <select id="origin-select">
@@ -106,7 +106,7 @@
             </div>
 
             <label>
-              <span>DESTINATION SEAPORT</span>
+              <span>DESTINATION PORT OR CITY</span>
               <div class="select-wrap dest-select">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m14 9-5 3 5 3V9Z"/></svg>
                 <select id="dest-select">
@@ -225,6 +225,14 @@
           </div>
 
           <!-- Run Optimization Button -->
+          <label for="road-rate" class="road-rate-control">
+            Road cost per km
+            <input id="road-rate" type="number" min="0.01" max="100" step="0.01" value="1.40">
+          </label>
+          <label for="operating-rate" class="road-rate-control">
+            Operating cost per hour
+            <input id="operating-rate" type="number" min="0" max="10000" step="0.01" value="5.00">
+          </label>
           <button type="button" class="run-button" id="btn-run-route">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
             RUN OPTIMIZATION <span>⌘ ENTER</span>
@@ -288,6 +296,7 @@
             <!-- Map Legend -->
             <div class="map-legend">
               <span><i class="legend-line"></i> sea lane</span>
+              <span><i class="legend-line road-legend"></i> road</span>
               <span><i class="legend-pulse"></i> <b id="legend-status-text">nominal corridor</b></span>
               <span style="display:inline-flex; align-items:center; gap:5px;"><span style="width:8px; height:8px; border-radius:50%; background:#3bf6c5; display:inline-block; box-shadow:0 0 6px #3bf6c5;"></span> origin</span>
               <span style="display:inline-flex; align-items:center; gap:5px;"><span style="width:8px; height:8px; border-radius:50%; background:#fda60a; display:inline-block; box-shadow:0 0 6px #fda60a;"></span> via stop</span>
@@ -353,7 +362,7 @@
           <div class="metric-content">
             <span>ROUTING SCORE</span>
             <strong id="metric-cost">—</strong>
-            <small>Fuel + canal + operating cost</small>
+            <small>Distance cost + transit and delays</small>
           </div>
           <div class="metric-trend" id="metric-cost-trend">—</div>
         </article>
@@ -395,10 +404,12 @@
             <h2 id="insight-title">Route pending</h2>
             <dl class="route-summary" id="route-summary" hidden>
               <div><dt>Distance</dt><dd id="summary-distance"></dd></div>
+              <div id="summary-road-row" hidden><dt>Road distance</dt><dd id="summary-road"></dd></div>
               <div><dt>Transit time</dt><dd id="summary-transit"></dd></div>
               <div><dt>Estimated fuel cost</dt><dd id="summary-fuel"></dd></div>
               <div><dt>Graph waypoints</dt><dd id="summary-waypoints"></dd></div>
               <div><dt>Simulated marine conditions</dt><dd id="summary-marine-model"></dd></div>
+              <div><dt>Routing objective</dt><dd id="summary-objective"></dd></div>
             </dl>
           </div>
         </article>

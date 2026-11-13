@@ -39,6 +39,7 @@ DYNAMIC_MATRIX_BIN = PROCESSED_DIR / "dynamic_cost_matrix.bin"
 DYNAMIC_MATRIX_JSON = PROCESSED_DIR / "dynamic_cost_matrix.json"
 NODES_CSV = DATA_DIR / "nodes.csv"
 EDGES_CSV = DATA_DIR / "edges.csv"
+ROAD_NETWORK = DATA_DIR / "road_network.json"
 
 app = Flask(__name__, static_folder=None)
 app.config["MAX_CONTENT_LENGTH"] = 64 * 1024
@@ -170,6 +171,29 @@ def json_object():
     return data
 
 
+def load_road_network():
+    if not ROAD_NETWORK.exists():
+        return {"cities": [], "links": []}
+    with ROAD_NETWORK.open(encoding="utf-8") as source:
+        return json.load(source)
+
+
+def prepare_multimodal_graph(directory, network):
+    nodes = directory / "nodes.csv"
+    edges = directory / "edges.csv"
+    shutil.copyfile(NODES_CSV, nodes)
+    shutil.copyfile(EDGES_CSV, edges)
+    with nodes.open("a", encoding="utf-8", newline="") as target:
+        writer = csv.writer(target)
+        for city in network["cities"]:
+            writer.writerow([city[key] for key in ("id", "name", "lat", "lon", "region")] + ["hub", 0])
+    with edges.open("a", encoding="utf-8", newline="") as target:
+        writer = csv.writer(target)
+        for link in network["links"]:
+            writer.writerow([link[key] for key in ("source_id", "dest_id", "distance_km", "duration_hours")] + ["road"])
+    return ["--nodes", str(nodes), "--edges", str(edges)]
+
+
 def load_network_ports():
     ports = []
     if NODES_CSV.exists():
@@ -232,6 +256,7 @@ def get_network():
         "dataset": "Global Marine Shipping Lanes",
         "total_ports": len(ports),
         "key_ports": ports,
+        "cities": load_road_network()["cities"],
         "active_congestion": read_congestion()
     })
 
@@ -367,6 +392,15 @@ def optimize_route():
             raise ValueError("pop_size must be at least 2 and generations must be positive")
         disruption = congestion_fields(data) if "node_id" in data or "delay_hours" in data else None
         zones = routing_zones(data)
+        sea_only = data.get("sea_only", False)
+        if not isinstance(sea_only, bool):
+            raise ValueError("sea_only must be a boolean")
+        road_rate = float(data.get("road_rate", 1.4))
+        operating_rate = float(data.get("operating_rate", 5.0))
+        if not math.isfinite(operating_rate) or not 0 <= operating_rate <= 10000:
+            raise ValueError("Operating cost per hour must be between 0 and 10000")
+        if not math.isfinite(road_rate) or not 0 < road_rate <= 100:
+            raise ValueError("road_rate must be greater than 0 and at most 100")
     except (ValueError, TypeError, OverflowError) as error:
         return invalid_request(str(error))
 
@@ -412,12 +446,21 @@ def optimize_route():
     if distributed and is_tsp:
         cmd.extend(["--engine", "mpi"])
 
+    time_cost = 1.0 if algorithm == "astar" else operating_rate
+    if algorithm != "astar":
+        cmd.extend(["--time-cost", str(time_cost)])
+
     try:
+        network = load_road_network()
         OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(dir=OUTPUT_DIR) as directory:
             route_file = Path(directory) / "route.json"
             congestion_file = Path(directory) / "congestion.json"
             write_json_atomically(congestion_file, delays)
+            if network["links"] and not sea_only:
+                cmd.extend(prepare_multimodal_graph(Path(directory), network))
+                cmd.append("--no-mode-switch-penalty")
+                cmd.extend(["--road-rate", str(road_rate)])
             if zones:
                 conditions_file = Path(directory) / "marine-conditions.txt"
                 conditions_file.write_text("\n".join(" ".join(map(str, zone)) for zone in zones),
@@ -440,7 +483,16 @@ def optimize_route():
             else "CPU" if zones else "Off"
         )
         route_data["requested_engine"] = algorithm
+        route_data["time_cost_per_hour"] = time_cost
         route_data["requested_waypoints"] = waypoints or [origin_id, dest_id]
+        route_data["sea_only"] = sea_only
+        route_data["road_rate"] = road_rate
+        links = {(link["source_id"], link["dest_id"]): link for link in network["links"]}
+        path = route_data["path"]
+        route_data["road_legs"] = [
+            dict(links[pair], path_index=index)
+            for index, pair in enumerate(zip(path, path[1:])) if pair in links
+        ]
         if data.get("publish", True) is not False:
             with route_output_lock:
                 write_json_atomically(LATEST_ROUTES_FILE, route_data)

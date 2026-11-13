@@ -48,6 +48,7 @@ __global__ void computeRouteCostsKernel(
     int node_count,
     double fuel_rate_sea,
     double fuel_rate_road,
+    double time_cost_per_hour,
     double mode_switch_penalty,
     double* __restrict__ d_out_costs,
     double* __restrict__ d_out_distances,
@@ -124,7 +125,7 @@ __global__ void computeRouteCostsKernel(
 
         double fuel_rate = (mode == 0) ? fuel_rate_sea : fuel_rate_road;
         double edge_fuel = dist_km * fuel_rate;
-        double edge_cost = edge_fuel + transit_hrs + congestion;
+        double edge_cost = edge_fuel + time_cost_per_hour * (transit_hrs + congestion);
 
         total_dist += dist_km;
         total_transit += (transit_hrs + congestion);
@@ -482,7 +483,7 @@ void CUDAFitnessEvaluator::evaluatePopulation(
             total_dist += dist_km;
             total_transit += (transit_hrs + congestion);
             total_fuel += edge_fuel;
-            total_cost += (edge_fuel + transit_hrs + congestion);
+            total_cost += edge_fuel + config.time_cost_per_hour * (transit_hrs + congestion);
 
             if (mode == 0) sea_legs++;
             else road_legs++;
@@ -669,7 +670,7 @@ void CUDAFitnessEvaluator::launchKernel(
         device_graph_.d_edge_distances_km, device_graph_.d_edge_transit_hours,
         device_graph_.d_edge_modes, device_graph_.d_congestion_delays,
         host_graph_.node_count,
-        config.fuel_rate_sea, config.fuel_rate_road, config.mode_switch_penalty,
+        config.fuel_rate_sea, config.fuel_rate_road, config.time_cost_per_hour, config.mode_switch_penalty,
         d_out_costs, d_out_distances, d_out_transit_hours, d_out_fuel_costs, d_out_switch_penalties,
         d_out_sea_legs, d_out_road_legs, d_out_mode_switches, d_out_is_valid
     );

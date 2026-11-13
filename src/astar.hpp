@@ -36,7 +36,8 @@ public:
         const MultimodalGraph& graph,
         double fuel_rate_sea = 0.6,
         double fuel_rate_road = 1.4,
-        double vessel_speed_kmh = 37.0
+        double vessel_speed_kmh = 37.0,
+        double time_cost_per_hour = 1.0
     );
 
     /**
@@ -56,6 +57,7 @@ private:
     const MultimodalGraph& graph_;
     double fuel_rate_sea_;
     double fuel_rate_road_;
+    double time_cost_per_hour_;
     double cost_per_geodesic_km_;
 
     /**

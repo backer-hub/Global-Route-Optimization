@@ -98,7 +98,8 @@ DynamicCostMatrix DynamicCostMatrix::createFromGraph(
     const MultimodalGraph& graph,
     const std::vector<int>& waypoint_ids,
     double fuel_rate_sea,
-    double fuel_rate_road
+    double fuel_rate_road,
+    double time_cost_per_hour
 ) {
     DynamicCostMatrix mat;
     mat.node_count = static_cast<int>(waypoint_ids.size());
@@ -112,7 +113,7 @@ DynamicCostMatrix DynamicCostMatrix::createFromGraph(
     mat.dist_matrix.assign(total_elements, 0.0);
     mat.transit_matrix.assign(total_elements, 0.0);
 
-    AStarOptimizer optimizer(graph, fuel_rate_sea, fuel_rate_road);
+    AStarOptimizer optimizer(graph, fuel_rate_sea, fuel_rate_road, 37.0, time_cost_per_hour);
     #pragma omp parallel for schedule(dynamic)
     for (int i = 0; i < mat.node_count; ++i) {
         for (int j = 0; j < mat.node_count; ++j) {
@@ -177,7 +178,7 @@ RouteScore GeneticAlgorithmOptimizer::evaluateRoute(const std::vector<int>& path
 
         double fuel_rate = (edge->mode == TransportMode::SEA) ? config_.fuel_rate_sea : config_.fuel_rate_road;
         double edge_fuel_cost = edge->distance_km * fuel_rate;
-        double edge_cost = edge_fuel_cost + edge->base_transit_hours + congestion_delay;
+        double edge_cost = edge_fuel_cost + config_.time_cost_per_hour * (edge->base_transit_hours + congestion_delay);
 
         score.total_distance_km += edge->distance_km;
         score.total_transit_hours += edge->base_transit_hours + congestion_delay;
@@ -730,7 +731,8 @@ Individual GeneticAlgorithmOptimizer::optimizeRoute(int origin_id, int dest_id) 
 
     auto start_time = std::chrono::high_resolution_clock::now();
 
-    AStarOptimizer seed_optimizer(graph_, config_.fuel_rate_sea, config_.fuel_rate_road);
+    AStarOptimizer seed_optimizer(graph_, config_.fuel_rate_sea, config_.fuel_rate_road,
+                                  37.0, config_.time_cost_per_hour);
     auto seed = seed_optimizer.findOptimalRoute(origin_id, dest_id);
     if (!seed.is_valid) {
         std::cerr << "[GA Error] No navigable path between the requested nodes.\n";

@@ -53,7 +53,9 @@ struct DynamicCostMatrix {
     }
 
     static DynamicCostMatrix loadFromBinary(const std::string& bin_path);
-    static DynamicCostMatrix createFromGraph(const MultimodalGraph& graph, const std::vector<int>& waypoint_ids, double fuel_rate_sea, double fuel_rate_road = 1.4);
+    static DynamicCostMatrix createFromGraph(const MultimodalGraph& graph, const std::vector<int>& waypoint_ids,
+                                            double fuel_rate_sea, double fuel_rate_road = 1.4,
+                                            double time_cost_per_hour = 1.0);
 };
 
 /**
@@ -83,6 +85,7 @@ struct Individual {
  * @brief Genetic Algorithm Configuration and Hyperparameters
  */
 struct GAConfig {
+    double time_cost_per_hour = 1.0;
     double fuel_rate_sea = 0.6;          ///< $/km for maritime container shipping (FUEL_RATE_SEA)
     double fuel_rate_road = 1.4;         ///< $/km for highway freight trucking (FUEL_RATE_ROAD)
     double mode_switch_penalty = 50.0;   ///< Transfer penalty ($) for intermodal sea <-> road shift

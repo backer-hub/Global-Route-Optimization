@@ -137,3 +137,6 @@ All vertices are grounded in physical coordinates (`lat`/`lon`). Major world sea
 * **Port of Los Angeles** (`#55508`): `33.7469°N, -118.2483°E`
 * **Port Said / Suez Canal** (`#37100` / `#21473`): `31.3115°N, 32.3716°E`
 * **Bab-el-Mandeb Strait** (`#46607`): `12.6990°N, 43.3024°E`
+- The dashboard supports port and city endpoints. For a city delivery, the router chooses among connected ports and road links using the existing routing score. The model charges 0.6 per sea kilometer and 1.4 per road kilometer, plus transit hours and modeled delays. These are illustrative weights. Direct A* requests find the minimum score across the bundled links.
+- Amber lines show the actual road geometry returned by OSRM. The road dataset covers ten cities and uses a driving profile. Road links begin or end at road access points near the corresponding maritime graph nodes. The gap between those points represents a port transfer.
+- Road data © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright), routed via [OSRM](https://project-osrm.org/). The bundled road corridors were retrieved from `routing.openstreetmap.de` and include available highway references.

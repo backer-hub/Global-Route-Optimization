@@ -15,12 +15,14 @@ AStarOptimizer::AStarOptimizer(
     const MultimodalGraph& graph,
     double fuel_rate_sea,
     double fuel_rate_road,
-    double vessel_speed_kmh
+    double vessel_speed_kmh,
+    double time_cost_per_hour
 ) : graph_(graph),
     fuel_rate_sea_(fuel_rate_sea),
     fuel_rate_road_(fuel_rate_road),
+    time_cost_per_hour_(time_cost_per_hour),
     cost_per_geodesic_km_(std::min(fuel_rate_sea, fuel_rate_road) +
-                         1.0 / (vessel_speed_kmh > 0.0 ? vessel_speed_kmh : 37.0)) {
+                         time_cost_per_hour / (vessel_speed_kmh > 0.0 ? vessel_speed_kmh : 37.0)) {
     // Bound the heuristic using actual edge weights, including rounded distances.
     for (const auto& edge : graph_.getAllEdges()) {
         const auto* from = graph_.getNode(edge.source_id);
@@ -28,7 +30,7 @@ AStarOptimizer::AStarOptimizer(
         double distance = haversineDistance(from->lat, from->lon, to->lat, to->lon);
         if (distance > 0) {
             double rate = edge.mode == TransportMode::SEA ? fuel_rate_sea_ : fuel_rate_road_;
-            double cost = edge.distance_km * rate + edge.base_transit_hours;
+            double cost = edge.distance_km * rate + time_cost_per_hour_ * edge.base_transit_hours;
             cost_per_geodesic_km_ = std::min(cost_per_geodesic_km_, cost / distance);
         }
     }
@@ -112,7 +114,7 @@ AStarResult AStarOptimizer::findOptimalRoute(int origin_id, int dest_id) const {
             double delay = dest_node ? dest_node->congestion_delay : 0.0;
             double fuel_rate = (edge.mode == TransportMode::SEA) ? fuel_rate_sea_ : fuel_rate_road_;
             double edge_fuel_cost = edge.distance_km * fuel_rate;
-            double edge_cost = edge_fuel_cost + edge.base_transit_hours + delay;
+            double edge_cost = edge_fuel_cost + time_cost_per_hour_ * (edge.base_transit_hours + delay);
 
             double tentative_g = g_score[current_u] + edge_cost;
 
@@ -157,7 +159,7 @@ AStarResult AStarOptimizer::findOptimalRoute(int origin_id, int dest_id) const {
             double delay = dest_node ? dest_node->congestion_delay : 0.0;
             double fuel_rate = (edge->mode == TransportMode::SEA) ? fuel_rate_sea_ : fuel_rate_road_;
             double edge_fuel_cost = edge->distance_km * fuel_rate;
-            double edge_cost = edge_fuel_cost + edge->base_transit_hours + delay;
+            double edge_cost = edge_fuel_cost + time_cost_per_hour_ * (edge->base_transit_hours + delay);
 
             result.total_distance_km += edge->distance_km;
             result.total_transit_hours += (edge->base_transit_hours + delay);

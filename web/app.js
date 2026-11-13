@@ -613,7 +613,7 @@ function renderGlobalPortsLayer() {
   if (!state.portsLayerGroup || !state.ports || state.ports.length === 0) return;
   state.portsLayerGroup.clearLayers();
 
-  state.ports.forEach(port => {
+  state.ports.filter(port => !port.isCity).forEach(port => {
     const portIcon = L.divIcon({
       className: 'port-network-node',
       html: `<div class="port-network-dot" title="${escapeHTML(port.name)}"></div>`,
@@ -704,7 +704,9 @@ async function loadPorts() {
     const res = await fetch('/api/ports');
     if (res.ok) {
       const data = await res.json();
-      state.ports = data.key_ports || data.nodes || FALLBACK_PORTS;
+      state.ports = (data.key_ports || data.nodes || FALLBACK_PORTS).concat(
+        (data.cities || []).map(city => ({...city, isCity: true}))
+      );
     } else {
       state.ports = FALLBACK_PORTS;
     }
@@ -729,12 +731,12 @@ function populatePortDropdowns() {
   state.ports.forEach(p => {
     const opt1 = document.createElement('option');
     opt1.value = p.id;
-    opt1.textContent = p.name;
+    opt1.textContent = p.isCity ? p.name + ' (city)' : p.name;
     originSel.appendChild(opt1);
 
     const opt2 = document.createElement('option');
     opt2.value = p.id;
-    opt2.textContent = p.name;
+    opt2.textContent = opt1.textContent;
     destSel.appendChild(opt2);
   });
 
@@ -758,10 +760,10 @@ function updatePortSubtitles() {
   const destSub = document.getElementById('dest-sub');
 
   if (state.originPort && originSub) {
-    originSub.textContent = `${state.originPort.code || 'CNSHA'} · #${state.originPort.id} · ${state.originPort.region_detail || state.originPort.region || 'Maritime'}`;
+    originSub.textContent = `${state.originPort.code || (state.originPort.isCity ? 'City' : 'Port')} · #${state.originPort.id} · ${state.originPort.region_detail || state.originPort.region || 'Maritime'}`;
   }
   if (state.destPort && destSub) {
-    destSub.textContent = `${state.destPort.code || 'NLRTM'} · #${state.destPort.id} · ${state.destPort.region_detail || state.destPort.region || 'Maritime'}`;
+    destSub.textContent = `${state.destPort.code || (state.destPort.isCity ? 'City' : 'Port')} · #${state.destPort.id} · ${state.destPort.region_detail || state.destPort.region || 'Maritime'}`;
   }
 }
 
@@ -937,17 +939,30 @@ const MARITIME_CHOKEPOINTS = {
   cape_good_hope: [-34.80, 19.50]
 };
 
-// Build continuous navigable marine waterways around landmasses if graph vertices are sparse
-function routeCoordinates(route) {
-  const coordinates = [];
-  for (const node of route.nodes) {
-    const previous = coordinates[coordinates.length - 1];
-    const longitude = previous
-      ? node.lon + 360 * Math.round((previous[1] - node.lon) / 360)
-      : node.lon;
-    coordinates.push([node.lat, longitude]);
+// Keep each road geometry separate from the adjacent sea lanes at port transfers.
+function routeSegments(route) {
+  const roadLegs = new Map((route.road_legs || []).map(leg => [leg.path_index, leg]));
+  const segments = [];
+  let previousLongitude;
+  function unwrap(points) {
+    return points.map(([lat, lon]) => {
+      if (previousLongitude !== undefined) lon += 360 * Math.round((previousLongitude - lon) / 360);
+      previousLongitude = lon;
+      return [lat, lon];
+    });
   }
-  return coordinates;
+  let sea = [];
+  for (let i = 0; i < route.nodes.length; i++) {
+    const node = route.nodes[i];
+    sea.push([node.lat, node.lon]);
+    const road = roadLegs.get(i);
+    if (!road) continue;
+    if (sea.length > 1) segments.push({coords: unwrap(sea)});
+    segments.push({coords: unwrap(road.geometry), road});
+    sea = [];
+  }
+  if (sea.length > 1) segments.push({coords: unwrap(sea)});
+  return segments;
 }
 
 // Render Route on Leaflet Map
@@ -955,12 +970,23 @@ function renderRouteOnMap(route) {
   if (!state.map) return;
   clearMapLayers();
 
-  const coords = routeCoordinates(route);
+  const segments = routeSegments(route);
+  const coords = segments.flatMap(segment => segment.coords);
   if (coords.length < 2) return;
 
   const engineCfg = ENGINES[state.engine] || ENGINES.astar;
   const isDisrupted = state.activeDisruption;
-  const displayCoords = coords;
+  const seaSegments = segments.filter(segment => !segment.road);
+  const displayCoords = seaSegments.map(segment => segment.coords);
+  const longestSea = seaSegments.reduce((longest, segment) =>
+    segment.coords.length > longest.length ? segment.coords : longest, []);
+  for (const {coords, road} of segments.filter(segment => segment.road)) {
+    const line = L.polyline(coords, {color: '#ffc15a', weight: 4, opacity: 0.95}).addTo(state.map);
+    const tooltip = document.createElement('span');
+    tooltip.textContent = `${road.distance_km.toFixed(1)} km by road${road.roads.length ? ' · ' + road.roads.join(', ') : ''}`;
+    line.bindTooltip(tooltip, {sticky: true});
+    state.routeLayers.push(line);
+  }
 
   // Background glow polyline
   const glowLine = L.polyline(displayCoords, {
@@ -984,12 +1010,12 @@ function renderRouteOnMap(route) {
 
   // Directional voyage beads along the corridor
   const beadColor = isDisrupted ? '#f97316' : engineCfg.coreColor;
-  const numBeads = Math.min(8, Math.max(3, Math.floor(displayCoords.length / 40)));
-  const beadInterval = Math.max(1, Math.floor((displayCoords.length - 1) / (numBeads + 1)));
+  const numBeads = Math.min(8, Math.max(3, Math.floor(longestSea.length / 40)));
+  const beadInterval = Math.max(1, Math.floor((longestSea.length - 1) / (numBeads + 1)));
   for (let i = 1; i <= numBeads; i++) {
     const idx = i * beadInterval;
-    if (idx < displayCoords.length - 1) {
-      const p = displayCoords[idx];
+    if (idx < longestSea.length - 1) {
+      const p = longestSea[idx];
       const beadIcon = L.divIcon({
         className: 'route-waypoint-bead',
         html: `<div style="width: 6px; height: 6px; border-radius: 50%; background: ${beadColor}; opacity: 0.9; box-shadow: 0 0 8px ${beadColor};"></div>`,
@@ -1016,7 +1042,7 @@ function renderRouteOnMap(route) {
   });
 
   const origMarker = L.marker(originCoord, { icon: originIcon })
-    .bindPopup(`<b>START PORT: ${escapeHTML(state.originPort ? state.originPort.name : 'Origin')}</b><br>Lat: ${originCoord[0].toFixed(3)}, Lon: ${originCoord[1].toFixed(3)}`)
+    .bindPopup(`<b>ORIGIN: ${escapeHTML(route.origin_name || 'Origin')}</b><br>Lat: ${originCoord[0].toFixed(3)}, Lon: ${originCoord[1].toFixed(3)}`)
     .addTo(state.map);
   state.routeLayers.push(origMarker);
 
@@ -1054,7 +1080,7 @@ function renderRouteOnMap(route) {
   });
 
   const dstMarker = L.marker(destCoord, { icon: destIcon })
-    .bindPopup(`<b>FINAL DESTINATION: ${escapeHTML(state.destPort ? state.destPort.name : 'Destination')}</b><br>Lat: ${destCoord[0].toFixed(3)}, Lon: ${destCoord[1].toFixed(3)}`)
+    .bindPopup(`<b>FINAL DESTINATION: ${escapeHTML(route.dest_name || 'Destination')}</b><br>Lat: ${destCoord[0].toFixed(3)}, Lon: ${destCoord[1].toFixed(3)}`)
     .addTo(state.map);
   state.routeLayers.push(dstMarker);
 
@@ -1082,7 +1108,7 @@ function renderRouteOnMap(route) {
   }
 
   // Animate Container Vessel along route with forward heading
-  startVesselAnimation(coords);
+  startVesselAnimation(longestSea);
 
   try {
     state.map.fitBounds(L.latLngBounds(coords), { padding: [50, 50], maxZoom: 6 });
@@ -1136,14 +1162,15 @@ async function toggleAllEnginesComparison(forceState) {
     const label = ENGINES[result.engine].label;
     if (result.route) {
       const computed = result.route;
-      const coords = routeCoordinates(computed);
-      const line = L.polyline(coords, {
-        color: ENGINES[result.engine].coreColor,
-        weight: 4,
-        dashArray: ENGINES[result.engine].dashArray
-      }).addTo(state.map);
-      state.multiRouteLayers.push(line);
-      bounds.extend(line.getBounds());
+      for (const {coords, road} of routeSegments(computed)) {
+        const line = L.polyline(coords, {
+          color: road ? '#ffc15a' : ENGINES[result.engine].coreColor,
+          weight: 4,
+          dashArray: road ? undefined : ENGINES[result.engine].dashArray
+        }).addTo(state.map);
+        state.multiRouteLayers.push(line);
+        bounds.extend(line.getBounds());
+      }
       row.textContent = `${label} · ${computed.engine} · ${computed.total_distance_km.toLocaleString()} km · ${computed.total_transit_hours} h`;
     } else {
       row.textContent = `${label} · ${result.error}`;
@@ -1259,6 +1286,8 @@ async function runOptimization() {
   const allWaypoints = [originId, ...viaIds, destId];
 
   const overlays = {
+    road_rate: document.getElementById('road-rate').valueAsNumber,
+    operating_rate: document.getElementById('operating-rate').valueAsNumber,
     currents: state.useCurrents,
     storms: state.showWeather ? LIVE_WEATHER_STORMS.map(({lat, lon, radius_km}) => ({lat, lon, radius_km})) : [],
     vessels: state.showTraffic ? LIVE_AIS_VESSELS.map(({lat, lon}) => ({
@@ -1346,6 +1375,7 @@ function renderItinerary(data) {
   if (!data) return;
 
   const scheduledStops = (data.tsp_tour || []).slice(1, -1);
+  const roadLegs = new Map((data.road_legs || []).map(leg => [leg.path_index, leg]));
   let nextStop = 0;
   const lastIndex = data.nodes.length - 1;
   data.nodes.forEach((node, index) => {
@@ -1354,7 +1384,9 @@ function renderItinerary(data) {
     const stop = node.id === scheduledStops[nextStop];
     if (stop) nextStop += 1;
     const previous = data.nodes[index - 1];
-    if (!departure && !arrival && !stop &&
+    const road = roadLegs.get(index);
+    const roadArrival = roadLegs.has(index - 1);
+    if (!departure && !arrival && !stop && !road && !roadArrival &&
         (/^Sea_Waypoint_\d+$/.test(node.name) || node.id === previous?.id)) return;
 
     const row = document.createElement('div');
@@ -1368,6 +1400,11 @@ function renderItinerary(data) {
     label.textContent = departure && arrival ? 'Departure and arrival' :
       departure ? 'Departure' : arrival ? 'Arrival' : stop ? 'Scheduled stop' : 'Route checkpoint';
     details.append(name, label);
+    if (road) {
+      const roadDetail = document.createElement('small');
+      roadDetail.textContent = `Road to ${data.nodes[index + 1].name} · ${road.distance_km.toFixed(1)} km${road.roads.length ? ' via ' + road.roads.join(', ') : ''}`;
+      details.appendChild(roadDetail);
+    }
     row.append(dot, details);
     if (container.lastElementChild) {
       const arrow = document.createElement('span');
@@ -1388,12 +1425,18 @@ function updateIntelligence(data) {
   if (!data) return;
   const format = {maximumFractionDigits: 2};
   document.getElementById('summary-distance').textContent = `${data.total_distance_km.toLocaleString(undefined, format)} km`;
+  const roadDistance = (data.road_legs || []).reduce((total, leg) => total + leg.distance_km, 0);
+  document.getElementById('summary-road-row').hidden = roadDistance === 0;
+  document.getElementById('summary-road').textContent = `${roadDistance.toLocaleString(undefined, format)} km`;
   document.getElementById('summary-transit').textContent = `${data.total_transit_hours.toLocaleString(undefined, format)} h`;
   document.getElementById('summary-fuel').textContent = data.fuel_cost.toLocaleString(undefined, {
     style: 'currency', currency: 'USD'
   });
   document.getElementById('summary-waypoints').textContent = data.nodes.length.toLocaleString();
   document.getElementById('summary-marine-model').textContent = data.marine_model || 'Off';
+  document.getElementById('summary-objective').textContent = data.requested_engine === 'astar'
+    ? 'Standard route score'
+    : `Lowest modeled cost · ${data.time_cost_per_hour} per transit hour`;
 }
 
 async function triggerDisruption(type) {

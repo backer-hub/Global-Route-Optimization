@@ -889,6 +889,37 @@
   line-height: 1;
 }
 
+.road-rate-control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  color: #aec8d3;
+  font-size: 12px;
+}
+
+.road-rate-control input {
+  width: 84px;
+  padding: 5px 8px;
+  color: #effdff;
+  background: #10273a;
+  border: 1px solid #365466;
+  border-radius: 5px;
+  color-scheme: dark;
+}
+
+.map-legend .road-legend {
+  background: #ffc15a;
+  box-shadow: none;
+}
+
+.itinerary-list .stop-row {
+  height: auto;
+  min-height: 37px;
+  padding-block: 6px;
+}
+
 .route-summary {
   margin-top: 16px;
 }

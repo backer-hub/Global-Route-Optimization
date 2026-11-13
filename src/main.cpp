@@ -225,6 +225,18 @@ int main(int argc, char* argv[]) try {
             edges_path = argv[++i];
         } else if ((arg == "--congestion" || arg == "--disruption") && i + 1 < argc) {
             congestion_path = argv[++i];
+        } else if (arg == "--no-mode-switch-penalty") {
+            ga_config.mode_switch_penalty = 0;
+        } else if (arg == "--time-cost" && i + 1 < argc) {
+            ga_config.time_cost_per_hour = std::stod(argv[++i]);
+            if (!std::isfinite(ga_config.time_cost_per_hour) || ga_config.time_cost_per_hour < 0) {
+                throw std::invalid_argument("Time cost must be nonnegative and finite");
+            }
+        } else if (arg == "--road-rate" && i + 1 < argc) {
+            ga_config.fuel_rate_road = std::stod(argv[++i]);
+            if (!std::isfinite(ga_config.fuel_rate_road) || ga_config.fuel_rate_road <= 0) {
+                throw std::invalid_argument("Road rate must be positive and finite");
+            }
         } else if (arg == "--marine-conditions" && i + 1 < argc) {
             marine_path = argv[++i];
         } else if ((arg == "--output" || arg == "-O") && i + 1 < argc) {
@@ -411,7 +423,9 @@ int main(int argc, char* argv[]) try {
 
         if (!all_in_matrix) {
             std::cout << "[TSP Ingestion] Dynamic matrix missing one or more waypoints, computing direct graph matrix for waypoints...\n";
-            cost_matrix = RouteOptimizer::DynamicCostMatrix::createFromGraph(full_graph, custom_waypoints, ga_config.fuel_rate_sea, ga_config.fuel_rate_road);
+            cost_matrix = RouteOptimizer::DynamicCostMatrix::createFromGraph(
+                full_graph, custom_waypoints, ga_config.fuel_rate_sea, ga_config.fuel_rate_road,
+                ga_config.time_cost_per_hour);
         }
 
         auto tsp_t_start = std::chrono::high_resolution_clock::now();
@@ -429,7 +443,8 @@ int main(int argc, char* argv[]) try {
 
         // Stitch the actual physical sea lane path between consecutive ports in the optimized tour
         std::vector<int> full_sea_path;
-        RouteOptimizer::AStarOptimizer astar(full_graph, ga_config.fuel_rate_sea, ga_config.fuel_rate_road);
+        RouteOptimizer::AStarOptimizer astar(full_graph, ga_config.fuel_rate_sea, ga_config.fuel_rate_road,
+                                             37.0, ga_config.time_cost_per_hour);
         double total_actual_dist = 0.0;
         double total_actual_cost = 0.0;
         double total_actual_time = 0.0;
