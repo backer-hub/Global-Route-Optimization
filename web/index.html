@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+  <meta name="theme-color" content="#06101c">
+  <meta name="description" content="MarineRoute AI global container shipping route optimizer command center.">
+  <title>MarineRoute AI — Global Shipping Route Optimizer</title>
+  
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <!-- Google Fonts: Space Grotesk, DM Mono, Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="marine-app">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand-block">
+        <div class="brand-mark">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1 .6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/>
+            <path d="M19.38 20A11.6 11.6 0 0 0 21 14l-9-4-9 4c0 2.9.94 5.34 2.81 7.76"/>
+            <path d="M19 13V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6"/>
+            <path d="M12 10v4"/>
+            <path d="M12 2v3"/>
+          </svg>
+        </div>
+        <div>
+          <strong>MARINEROUTE</strong>
+          <span>AI OPERATIONS</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav" aria-label="Dashboard">
+        <a class="sidebar-item active" href="#route-status-chip">Route optimization</a>
+        <a class="sidebar-item" href="#disruption-panel">Disruption controls</a>
+        <a class="sidebar-item" href="#itinerary-title">Itinerary</a>
+      </nav>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="main-content">
+      <!-- Topbar -->
+      <header class="topbar">
+        <div>
+          <div class="crumbs">COMMAND CENTER <span>/</span> LIVE OPTIMIZATION</div>
+          <h1>Route optimization <span>in motion.</span></h1>
+        </div>
+        <div class="top-actions">
+          <button type="button" class="icon-button notification" id="btn-notifications" aria-label="Notifications">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+            <i></i>
+          </button>
+          <button type="button" class="export-button" id="btn-export-manifest">
+            EXPORT MANIFEST
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- Workspace Grid (Controls + Map) -->
+      <section class="workspace-grid">
+        <!-- Control Panel -->
+        <div class="control-panel">
+          <div class="panel-head">
+            <div>
+              <span class="eyebrow">MISSION PARAMETERS</span>
+              <h2>Plan a voyage</h2>
+            </div>
+            <div class="status-chip" id="route-status-chip">
+              <i></i> <span id="route-status-text">ROUTE PENDING</span>
+            </div>
+          </div>
+
+          <!-- Port Selectors -->
+          <div class="route-fields">
+            <label>
+              <span>ORIGIN SEAPORT</span>
+              <div class="select-wrap origin-select">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m10 15 5-3-5-3v6Z"/></svg>
+                <select id="origin-select">
+                  <option value="55196" selected>Port of Shanghai</option>
+                  <option value="49102">Port of Singapore</option>
+                  <option value="45822">Port of Mumbai</option>
+                  <option value="45250">Port of Colombo</option>
+                  <option value="49452">Port of Dubai (Jebel Ali)</option>
+                  <option value="21998">Port of Rotterdam</option>
+                  <option value="55508">Port of Los Angeles</option>
+                </select>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+              </div>
+              <small id="origin-sub">CNSHA · #55196 · East China Sea</small>
+            </label>
+
+            <div class="route-swap">
+              <div></div>
+              <button type="button" id="btn-swap-ports" aria-label="Swap origin and destination">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 16-4-4 4-4"/><path d="M3 12h18"/><path d="m17 8 4 4-4 4"/></svg>
+              </button>
+              <div></div>
+            </div>
+
+            <label>
+              <span>DESTINATION SEAPORT</span>
+              <div class="select-wrap dest-select">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m14 9-5 3 5 3V9Z"/></svg>
+                <select id="dest-select">
+                  <option value="21998" selected>Port of Rotterdam</option>
+                  <option value="55196">Port of Shanghai</option>
+                  <option value="49102">Port of Singapore</option>
+                  <option value="22490">Port of Hamburg</option>
+                  <option value="6383">Port of New York & New Jersey</option>
+                  <option value="55508">Port of Los Angeles</option>
+                </select>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+              </div>
+              <small id="dest-sub">NLRTM · #21998 · North Sea</small>
+            </label>
+          </div>
+
+          <!-- Intermediate Waypoints & Multi-Stop TSP Section -->
+          <div class="intermediate-stops-section" id="intermediate-stops-section">
+            <div class="stops-header">
+              <span style="font-size: 10px; font-weight: 700; color: #8b9eb0; letter-spacing: 0.08em; font-family: 'DM Mono', monospace;">INTERMEDIATE STOPS (TSP)</span>
+              <span class="badge-tsp-mode" id="tsp-mode-badge" style="display: none;">TSP GA ACTIVE</span>
+            </div>
+            
+            <div id="intermediate-stops-list" style="display: flex; flex-direction: column; gap: 8px;">
+              <!-- Dynamic Intermediate Stop Rows Injected via JS -->
+            </div>
+
+            <button type="button" class="btn-add-stop" id="btn-add-stop">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              ADD INTERMEDIATE STOP
+            </button>
+          </div>
+
+          <!-- Engine Choice Section -->
+          <div class="engine-section">
+            <div class="section-label">
+              <span>COMPUTE ENGINE</span>
+              <div style="display: flex; gap: 6px; align-items: center;">
+                <button type="button" id="btn-compare-all-panel" class="btn-compare-all-badge" title="Compare computed routes on the map">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                  <span>COMPARE ROUTES</span>
+                </button>
+                <button type="button" id="btn-open-compare">SPECS</button>
+              </div>
+            </div>
+            <div class="engine-grid">
+              <button type="button" class="engine-choice selected" data-engine="astar">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+                <span>A* Deterministic</span>
+                <small>Point-to-point search</small>
+                <i></i>
+              </button>
+              <button type="button" class="engine-choice" data-engine="openmp">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/></svg>
+                <span>OpenMP Multi-core</span>
+                <small>Parallel fitness</small>
+              </button>
+              <button type="button" class="engine-choice" data-engine="cuda">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                <span>CUDA GPU Kernel</span>
+                <small>GPU when available</small>
+              </button>
+              <button type="button" class="engine-choice" data-engine="mpi" disabled>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="12" cy="18" r="3"/><line x1="8.5" y1="7.5" x2="15.5" y2="7.5"/><line x1="7.5" y1="8.5" x2="10.5" y2="15.5"/><line x1="16.5" y1="8.5" x2="13.5" y2="15.5"/></svg>
+                <span>MPI</span>
+                <small>Unavailable</small>
+              </button>
+            </div>
+          </div>
+
+          <!-- Disruption Injector Panel -->
+          <div class="disruption-panel" id="disruption-panel">
+            <div class="disruption-head">
+              <div>
+                <span class="eyebrow">DYNAMIC CONGESTION</span>
+                <h3>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  Disruption injector
+                </h3>
+              </div>
+              <span class="incident-tag" id="incident-tag" style="display: none;">1 ACTIVE EVENT</span>
+            </div>
+
+            <div class="delay-row">
+              <div>
+                <span>DELAY WINDOW</span>
+                <strong id="delay-display">+72h</strong>
+              </div>
+              <input type="range" id="delay-slider" min="6" max="168" step="6" value="72" aria-label="Delay duration">
+              <div class="range-labels">
+                <span>6h</span>
+                <span>168h</span>
+              </div>
+            </div>
+
+            <div class="presets">
+              <button type="button" class="preset-btn" data-hours="24">+24h</button>
+              <button type="button" class="preset-btn" data-hours="48">+48h</button>
+              <button type="button" class="preset-btn active" data-hours="72">+72h</button>
+              <button type="button" class="preset-btn" data-hours="120">+120h</button>
+            </div>
+
+            <div class="disruption-actions">
+              <button type="button" class="strike-button" id="btn-strike">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/></svg>
+                TRIGGER PORT STRIKE
+              </button>
+              <button type="button" class="typhoon-button" id="btn-typhoon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+                TYPHOON DELAY
+              </button>
+              <button type="button" class="reset-button" id="btn-reset" title="Reset All Congestion Delays">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Run Optimization Button -->
+          <button type="button" class="run-button" id="btn-run-route">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            RUN OPTIMIZATION <span>⌘ ENTER</span>
+          </button>
+        </div>
+
+        <!-- Map Shell -->
+        <div class="map-shell">
+          <div class="map-topline">
+            <div class="map-title">
+              <span class="live-dot"></span> GLOBAL LANE NETWORK <b id="map-edge-count">211,812</b> ACTIVE EDGES
+            </div>
+            <div class="map-tools">
+              <button type="button" class="map-layer-btn btn-compare-toggle" id="btn-toggle-all-routes" title="Compare computed routes on the map">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/><circle cx="7" cy="6" r="2" fill="currentColor"/><circle cx="17" cy="12" r="2" fill="currentColor"/><circle cx="11" cy="18" r="2" fill="currentColor"/></svg>
+                <span>COMPARE ROUTES</span>
+              </button>
+              <button type="button" class="map-layer-btn active" id="btn-toggle-ports" title="Toggle Global Seaports & Harbor Terminals">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="3"/><line x1="12" y1="22" x2="12" y2="8"/><path d="M5 12H2a10 10 0 0 0 20 0h-3"/></svg>
+                <span>SEAPORTS</span>
+              </button>
+              <button type="button" class="map-layer-btn active" id="btn-toggle-weather" title="Show simulated storms and include their delays in routing">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+                <span>WEATHER RADAR</span>
+              </button>
+              <button type="button" class="map-layer-btn active" id="btn-toggle-traffic" title="Show simulated vessels and include nearby traffic delays in routing">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1 .6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M19.38 20A11.6 11.6 0 0 0 21 14l-9-4-9 4c0 2.9.94 5.34 2.81 7.76"/><path d="M19 13V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6"/><path d="M12 10v4"/></svg>
+                <span>AIS TRAFFIC</span>
+              </button>
+              <button type="button" class="map-layer-btn active" id="btn-toggle-currents" aria-pressed="true" title="Use simulated ocean currents in routing">CURRENTS</button>
+              <button type="button" class="map-icon-btn" id="btn-recenter-map" title="Recenter Oceanic Route">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+              <button type="button" class="map-icon-btn" id="btn-fullscreen-map" title="Toggle Fullscreen">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Map Viewport -->
+          <div class="map-viewport">
+            <div id="map"></div>
+
+            <!-- Multi-Engine Comparison HUD Card -->
+            <div class="multi-route-hud" id="multi-route-hud" style="display: none;">
+              <div class="hud-header">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span class="hud-live-dot"></span>
+                  <strong style="font-size: 11px; letter-spacing: 0.08em; color: #effdff; font-family: 'DM Mono', monospace;">COMPUTED ROUTE COMPARISON</strong>
+                </div>
+                <button type="button" class="hud-close-btn" id="btn-close-hud" title="Exit Multi-Route Comparison">&times;</button>
+              </div>
+              <div class="hud-engine-list" id="hud-engine-list">
+                <!-- Dynamically populated via JS -->
+              </div>
+              <div class="hud-footer">
+                <button type="button" class="hud-single-btn" id="btn-single-route-view">SINGLE VIEW</button>
+              </div>
+            </div>
+
+            <!-- Map Legend -->
+            <div class="map-legend">
+              <span><i class="legend-line"></i> sea lane</span>
+              <span><i class="legend-pulse"></i> <b id="legend-status-text">nominal corridor</b></span>
+              <span style="display:inline-flex; align-items:center; gap:5px;"><span style="width:8px; height:8px; border-radius:50%; background:#3bf6c5; display:inline-block; box-shadow:0 0 6px #3bf6c5;"></span> origin</span>
+              <span style="display:inline-flex; align-items:center; gap:5px;"><span style="width:8px; height:8px; border-radius:50%; background:#fda60a; display:inline-block; box-shadow:0 0 6px #fda60a;"></span> via stop</span>
+              <span style="display:inline-flex; align-items:center; gap:5px;"><span style="width:8px; height:8px; border-radius:50%; background:#13d6e8; display:inline-block; box-shadow:0 0 6px #13d6e8;"></span> destination</span>
+              <span style="display:inline-flex; align-items:center; gap:5px;"><span style="width:7px; height:7px; border-radius:50%; background:#e2e8f0; border:1px solid #06101c; display:inline-block;"></span> seaport</span>
+            </div>
+
+            <div class="map-scale">
+              <strong>2,000 NM</strong>
+              <div></div>
+              <span>0°</span>
+            </div>
+          </div>
+
+          <!-- Map Bottombar -->
+          <div class="map-bottombar">
+            <span>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              AIS feed synchronized <b id="ais-timestamp">09:42:18 UTC</b>
+            </span>
+            <span>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              <span id="exec-algorithm-label">—</span> <b id="exec-time-label">—</b>
+            </span>
+            <span>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/></svg>
+              <b id="graph-vertex-count">56,325</b> graph vertices
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <!-- KPI Metrics Grid -->
+      <section class="metrics-grid">
+        <article class="metric-card metric-cyan">
+          <div class="metric-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg>
+          </div>
+          <div class="metric-content">
+            <span>TOTAL DISTANCE</span>
+            <strong id="metric-dist">—</strong>
+            <small id="metric-dist-sub">—</small>
+          </div>
+          <div class="metric-trend" id="metric-dist-trend">—</div>
+        </article>
+
+        <article class="metric-card metric-violet">
+          <div class="metric-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div class="metric-content">
+            <span>TRANSIT DURATION</span>
+            <strong id="metric-time">—</strong>
+            <small id="metric-time-sub">—</small>
+          </div>
+          <div class="metric-trend" id="metric-time-trend">—</div>
+        </article>
+
+        <article class="metric-card metric-amber">
+          <div class="metric-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 22h12"/><path d="M4 9h10"/><path d="M14 22V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v18"/><path d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2h0a2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L18 5"/></svg>
+          </div>
+          <div class="metric-content">
+            <span>ROUTING SCORE</span>
+            <strong id="metric-cost">—</strong>
+            <small>Fuel + canal + operating cost</small>
+          </div>
+          <div class="metric-trend" id="metric-cost-trend">—</div>
+        </article>
+
+        <article class="metric-card metric-mint">
+          <div class="metric-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/></svg>
+          </div>
+          <div class="metric-content">
+            <span>EXECUTION TIME</span>
+            <strong id="metric-exec">—</strong>
+            <small id="metric-exec-sub">—</small>
+          </div>
+          
+        </article>
+      </section>
+
+      <!-- Bottom Grid (Itinerary + AI Insight) -->
+      <section class="bottom-grid">
+        <!-- Turn-by-turn Itinerary -->
+        <article class="itinerary-card">
+          <div class="card-heading">
+            <div>
+              <span class="eyebrow">VOYAGE ITINERARY</span>
+              <h2 id="itinerary-title">—</h2>
+            </div>
+            <button type="button" id="btn-view-itinerary-detail">
+              VIEW ALL WAYPOINTS
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+          </div>
+
+          <div class="itinerary-list" id="itinerary-list-container"></div>
+        </article>
+
+        <article class="insight-card">
+          <div class="insight-content">
+            <span class="eyebrow">ROUTE SUMMARY</span>
+            <h2 id="insight-title">Route pending</h2>
+            <dl class="route-summary" id="route-summary" hidden>
+              <div><dt>Distance</dt><dd id="summary-distance"></dd></div>
+              <div><dt>Transit time</dt><dd id="summary-transit"></dd></div>
+              <div><dt>Estimated fuel cost</dt><dd id="summary-fuel"></dd></div>
+              <div><dt>Graph waypoints</dt><dd id="summary-waypoints"></dd></div>
+              <div><dt>Simulated marine conditions</dt><dd id="summary-marine-model"></dd></div>
+            </dl>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <!-- Engine Comparison Modal -->
+  <div class="modal-overlay" id="compare-modal">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h3>HPC Compute Engine Architecture Comparison</h3>
+        <button type="button" class="modal-close" id="btn-close-compare">&times;</button>
+      </div>
+      <ul>
+        <li>A* searches for a least-cost route between two ports.</li>
+        <li>OpenMP evaluates genetic-algorithm candidates on the CPU.</li>
+        <li>CUDA evaluates candidates on a compatible GPU and falls back to OpenMP when no device is available.</li>
+        <li>Multi-stop routing uses a genetic algorithm with the departure and arrival ports fixed.</li>
+      </ul>
+      <button type="button" class="run-button" id="btn-close-compare-btn" style="margin-top: 14px;">CLOSE COMPARISON</button>
+    </div>
+  </div>
+
+  <!-- AI Route Intelligence & Recommendation Review Modal -->
+  <!-- Turn-by-Turn Waypoint Detail Modal -->
+  <div class="modal-overlay" id="itinerary-modal">
+    <div class="modal-box" style="max-width: 740px; max-height: 85vh; display: flex; flex-direction: column;">
+      <div class="modal-head">
+        <div>
+          <h3 style="font-size: 17px; margin: 0;">Route waypoints</h3>
+          <span style="font-size: 11px; color: #8b9eb0; font-family: 'DM Mono', monospace;" id="itinerary-modal-subtitle"></span>
+        </div>
+        <button type="button" class="modal-close" id="btn-close-itin">&times;</button>
+      </div>
+      <div style="overflow-y: auto; flex: 1; margin: 10px 0; max-height: 380px;">
+        <table class="benchmark-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>WAYPOINT / STRAIT</th>
+              <th>COORDINATES</th>
+            </tr>
+          </thead>
+          <tbody id="itinerary-modal-tbody">
+            <!-- Populated via JS -->
+          </tbody>
+        </table>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 10px; padding-top: 10px; border-top: 1px solid rgba(151,193,214,0.15);">
+        <button type="button" class="export-button" id="btn-export-waypoints">
+          EXPORT WAYPOINTS CSV
+        </button>
+        <button type="button" class="preset-btn" id="btn-close-itin-btn" style="padding: 0 16px;">CLOSE</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Leaflet JS & App JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="app.js"></script>
+</body>
+</html>

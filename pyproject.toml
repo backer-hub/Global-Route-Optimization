@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "route-optimizer"
+version = "1.2.0"
+description = "Global Marine Container Shipping Route Optimizer with A* Search, CUDA/OpenMP/MPI GA, and REST API Dashboard"
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+authors = [
+    { name = "Route Optimizer Team" }
+]
+keywords = [
+    "supply-chain",
+    "route-optimizer",
+    "hpc",
+    "cuda",
+    "openmp",
+    "mpi",
+    "astar",
+    "genetic-algorithm",
+    "marine-routing",
+    "maritime"
+]
+dependencies = [
+    "Flask>=3.0.0",
+    "requests>=2.31.0",
+    "Werkzeug>=3.0.0",
+    "Jinja2>=3.1.0",
+    "click>=8.0.0",
+    "cryptography>=41.0.0",
+    "pymysql>=1.1.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0"
+]
+
+[project.scripts]
+route-optimizer-server = "server:main"
+route-optimizer-cli = "main:main"
+route-renderer = "scripts.render_route_map:main"
+route-traffic-streamer = "scripts.stream_congestion:main"
+
+[tool.setuptools]
+packages = ["scripts"]
+py-modules = ["server", "app", "main"]

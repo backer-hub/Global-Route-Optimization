@@ -1,0 +1,11 @@
+/build/
+/build-*/
+/.marine-browser-deps/
+/.mpi-setup/
+/.venv/
+/output/
+__pycache__/
+*.pyc
+*.zip
+.env
+.env.*

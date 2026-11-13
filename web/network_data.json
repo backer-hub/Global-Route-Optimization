@@ -1,0 +1,1248 @@
+{
+  "dataset": "Global Marine Shipping Lanes",
+  "total_nodes": 56325,
+  "key_ports": [
+    {
+      "id": 52295,
+      "name": "Port of Buenos Aires",
+      "lat": -34.5969,
+      "lon": -58.3686,
+      "region": "AMERICAS",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT295",
+      "region_detail": "AMERICAS"
+    },
+    {
+      "id": 27099,
+      "name": "Port of Callao (Lima)",
+      "lat": -12.1745,
+      "lon": -77.6271,
+      "region": "AMERICAS",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT099",
+      "region_detail": "AMERICAS"
+    },
+    {
+      "id": 17119,
+      "name": "Port of Charleston",
+      "lat": 32.2439,
+      "lon": -79.2207,
+      "region": "AMERICAS",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT119",
+      "region_detail": "AMERICAS"
+    },
+    {
+      "id": 41993,
+      "name": "Port of Colon (Cristobal - Atlantic)",
+      "lat": 9.3153,
+      "lon": -79.9197,
+      "region": "AMERICAS",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PACON",
+      "region_detail": "Panama Canal (Atlantic)"
+    },
+    {
+      "id": 56004,
+      "name": "Port of Houston",
+      "lat": 29.747375,
+      "lon": -95.28455,
+      "region": "AMERICAS",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "USHOU",
+      "region_detail": "Gulf of Mexico"
+    },
+    {
+      "id": 56181,
+      "name": "Port of Long Beach",
+      "lat": 33.747,
+      "lon": -118.2483,
+      "region": "AMERICAS",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "USLGB",
+      "region_detail": "San Pedro Bay"
+    },
+    {
+      "id": 55508,
+      "name": "Port of Los Angeles",
+      "lat": 33.7469,
+      "lon": -118.2483,
+      "region": "AMERICAS",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "USLAX",
+      "region_detail": "Pacific Coast"
+    },
+    {
+      "id": 53731,
+      "name": "Port of Miami",
+      "lat": 25.784325,
+      "lon": -80.1818,
+      "region": "AMERICAS",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "USMIA",
+      "region_detail": "Biscayne Bay / Atlantic"
+    },
+    {
+      "id": 55903,
+      "name": "Port of New Orleans",
+      "lat": 29.989,
+      "lon": -90.02,
+      "region": "AMERICAS",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT903",
+      "region_detail": "AMERICAS"
+    },
+    {
+      "id": 6383,
+      "name": "Port of New York & New Jersey",
+      "lat": 40.6465,
+      "lon": -74.0631,
+      "region": "AMERICAS",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "USNYC",
+      "region_detail": "New York Harbor"
+    },
+    {
+      "id": 5979,
+      "name": "Port of Norfolk (Hampton Roads)",
+      "lat": 36.9485,
+      "lon": -75.9599,
+      "region": "AMERICAS",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT979",
+      "region_detail": "AMERICAS"
+    },
+    {
+      "id": 17895,
+      "name": "Port of Oakland / San Francisco",
+      "lat": 37.8301,
+      "lon": -122.3971,
+      "region": "AMERICAS",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT895",
+      "region_detail": "AMERICAS"
+    },
+    {
+      "id": 32872,
+      "name": "Port of Panama (Balboa - Pacific)",
+      "lat": 8.871,
+      "lon": -79.5201,
+      "region": "AMERICAS",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT872",
+      "region_detail": "AMERICAS"
+    },
+    {
+      "id": 39601,
+      "name": "Port of Santos (Sao Paulo)",
+      "lat": -24.3,
+      "lon": -46.3,
+      "region": "AMERICAS",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT601",
+      "region_detail": "AMERICAS"
+    },
+    {
+      "id": 52305,
+      "name": "Port of Savannah",
+      "lat": 32.1242,
+      "lon": -79.4801,
+      "region": "AMERICAS",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT305",
+      "region_detail": "AMERICAS"
+    },
+    {
+      "id": 55208,
+      "name": "Port of Seattle / Tacoma",
+      "lat": 47.59715,
+      "lon": -122.340625,
+      "region": "AMERICAS",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT208",
+      "region_detail": "AMERICAS"
+    },
+    {
+      "id": 54014,
+      "name": "Port of Valparaiso",
+      "lat": -33.0333,
+      "lon": -71.6333,
+      "region": "AMERICAS",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT014",
+      "region_detail": "AMERICAS"
+    },
+    {
+      "id": 53999,
+      "name": "Port of Vancouver",
+      "lat": 49.2706,
+      "lon": -123.1203,
+      "region": "AMERICAS",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT999",
+      "region_detail": "AMERICAS"
+    },
+    {
+      "id": 32115,
+      "name": "Port of Busan",
+      "lat": 35.0918,
+      "lon": 129.0372,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT115",
+      "region_detail": "APAC"
+    },
+    {
+      "id": 48142,
+      "name": "Port of Cape Town",
+      "lat": -33.9007,
+      "lon": 18.4284,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT142",
+      "region_detail": "APAC"
+    },
+    {
+      "id": 22605,
+      "name": "Port of Chennai",
+      "lat": 13.0,
+      "lon": 81.0,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT605",
+      "region_detail": "APAC"
+    },
+    {
+      "id": 21881,
+      "name": "Port of Cochin",
+      "lat": 9.7,
+      "lon": 75.3,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT881",
+      "region_detail": "APAC"
+    },
+    {
+      "id": 45250,
+      "name": "Port of Colombo",
+      "lat": 6.942325,
+      "lon": 79.846525,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "LKCMB",
+      "region_detail": "Laccadive Sea"
+    },
+    {
+      "id": 49452,
+      "name": "Port of Dubai (Jebel Ali)",
+      "lat": 25.2653,
+      "lon": 55.2791,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "AEJEA",
+      "region_detail": "Persian Gulf"
+    },
+    {
+      "id": 27897,
+      "name": "Port of Durban",
+      "lat": -30.0,
+      "lon": 32.00025,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT897",
+      "region_detail": "APAC"
+    },
+    {
+      "id": 55769,
+      "name": "Port of Guangzhou (Nansha)",
+      "lat": 22.6663,
+      "lon": 113.6956,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT769",
+      "region_detail": "APAC"
+    },
+    {
+      "id": 49682,
+      "name": "Port of Hong Kong",
+      "lat": 22.2939,
+      "lon": 114.1647,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT682",
+      "region_detail": "APAC"
+    },
+    {
+      "id": 23826,
+      "name": "Port of Kandla / Mundra",
+      "lat": 21.0544,
+      "lon": 69.1663,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT826",
+      "region_detail": "APAC"
+    },
+    {
+      "id": 13051,
+      "name": "Port of Kaohsiung",
+      "lat": 22.4557,
+      "lon": 119.75315,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT051",
+      "region_detail": "APAC"
+    },
+    {
+      "id": 53142,
+      "name": "Port of Melbourne",
+      "lat": -38.0,
+      "lon": 144.9,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT142",
+      "region_detail": "APAC"
+    },
+    {
+      "id": 45822,
+      "name": "Port of Mumbai (JNPT)",
+      "lat": 18.9584,
+      "lon": 72.8434,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "INNSA",
+      "region_detail": "Arabian Sea"
+    },
+    {
+      "id": 37159,
+      "name": "Port of Ningbo-Zhoushan",
+      "lat": 30.3459,
+      "lon": 121.8969,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT159",
+      "region_detail": "APAC"
+    },
+    {
+      "id": 1893,
+      "name": "Port of Qingdao",
+      "lat": 36.0911,
+      "lon": 120.3213,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT893",
+      "region_detail": "APAC"
+    },
+    {
+      "id": 55196,
+      "name": "Port of Shanghai",
+      "lat": 31.23975,
+      "lon": 121.483775,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "CNSHA",
+      "region_detail": "East China Sea"
+    },
+    {
+      "id": 55337,
+      "name": "Port of Shenzhen (Yantian)",
+      "lat": 22.294,
+      "lon": 114.1648,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT337",
+      "region_detail": "APAC"
+    },
+    {
+      "id": 49102,
+      "name": "Port of Singapore",
+      "lat": 1.2621,
+      "lon": 103.8531,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "SGSIN",
+      "region_detail": "Malacca Strait"
+    },
+    {
+      "id": 27020,
+      "name": "Port of Sydney (Botany)",
+      "lat": -34.0001,
+      "lon": 151.5,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT020",
+      "region_detail": "APAC"
+    },
+    {
+      "id": 55571,
+      "name": "Port of Tianjin",
+      "lat": 38.9847,
+      "lon": 117.7006,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT571",
+      "region_detail": "APAC"
+    },
+    {
+      "id": 38512,
+      "name": "Port of Tokyo",
+      "lat": 35.6181,
+      "lon": 139.7656,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT512",
+      "region_detail": "APAC"
+    },
+    {
+      "id": 55236,
+      "name": "Port of Yokohama",
+      "lat": 35.45295,
+      "lon": 139.649625,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT236",
+      "region_detail": "APAC"
+    },
+    {
+      "id": 55841,
+      "name": "Strait of Hormuz Portal",
+      "lat": 26.49535,
+      "lon": 56.438125,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT841",
+      "region_detail": "APAC"
+    },
+    {
+      "id": 12153,
+      "name": "Strait of Malacca Portal",
+      "lat": 1.1,
+      "lon": 103.6,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT153",
+      "region_detail": "APAC"
+    },
+    {
+      "id": 46607,
+      "name": "Bab-el-Mandeb Strait Portal",
+      "lat": 12.699,
+      "lon": 43.3024,
+      "region": "EU",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "DJJIB",
+      "region_detail": "Bab-el-Mandeb Strait"
+    },
+    {
+      "id": 24404,
+      "name": "English Channel Portal",
+      "lat": 51.093,
+      "lon": 1.4444,
+      "region": "EU",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT404",
+      "region_detail": "EU"
+    },
+    {
+      "id": 37100,
+      "name": "Port Said (Suez Canal North)",
+      "lat": 31.311475,
+      "lon": 32.371625,
+      "region": "EU",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "EGPSD",
+      "region_detail": "Mediterranean / Suez North"
+    },
+    {
+      "id": 21083,
+      "name": "Port of Algeciras (Gibraltar)",
+      "lat": 36.128775,
+      "lon": -5.401025,
+      "region": "EU",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT083",
+      "region_detail": "EU"
+    },
+    {
+      "id": 20042,
+      "name": "Port of Antwerp-Bruges",
+      "lat": 51.27285,
+      "lon": 4.33825,
+      "region": "EU",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT042",
+      "region_detail": "EU"
+    },
+    {
+      "id": 37388,
+      "name": "Port of Barcelona",
+      "lat": 41.33245,
+      "lon": 2.16615,
+      "region": "EU",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT388",
+      "region_detail": "EU"
+    },
+    {
+      "id": 16298,
+      "name": "Port of Bremerhaven",
+      "lat": 53.538,
+      "lon": 8.569525,
+      "region": "EU",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT298",
+      "region_detail": "EU"
+    },
+    {
+      "id": 17161,
+      "name": "Port of Felixstowe / London",
+      "lat": 51.9508,
+      "lon": 1.31205,
+      "region": "EU",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT161",
+      "region_detail": "EU"
+    },
+    {
+      "id": 45573,
+      "name": "Port of Genoa",
+      "lat": 44.414,
+      "lon": 8.9166,
+      "region": "EU",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT573",
+      "region_detail": "EU"
+    },
+    {
+      "id": 40487,
+      "name": "Port of Gioia Tauro",
+      "lat": 38.445069,
+      "lon": 15.887075,
+      "region": "EU",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT487",
+      "region_detail": "EU"
+    },
+    {
+      "id": 35681,
+      "name": "Port of Hamburg",
+      "lat": 53.5451,
+      "lon": 9.9273,
+      "region": "EU",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT681",
+      "region_detail": "EU"
+    },
+    {
+      "id": 46802,
+      "name": "Port of Jeddah",
+      "lat": 21.46975,
+      "lon": 39.163125,
+      "region": "EU",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT802",
+      "region_detail": "EU"
+    },
+    {
+      "id": 5268,
+      "name": "Port of Le Havre",
+      "lat": 49.474213,
+      "lon": 0.098497,
+      "region": "EU",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT268",
+      "region_detail": "EU"
+    },
+    {
+      "id": 54586,
+      "name": "Port of Marseille (Fos)",
+      "lat": 43.3883,
+      "lon": 4.9405,
+      "region": "EU",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT586",
+      "region_detail": "EU"
+    },
+    {
+      "id": 52787,
+      "name": "Port of Piraeus (Athens)",
+      "lat": 37.9383,
+      "lon": 23.6238,
+      "region": "EU",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT787",
+      "region_detail": "EU"
+    },
+    {
+      "id": 21998,
+      "name": "Port of Rotterdam",
+      "lat": 51.985056,
+      "lon": 4.0771,
+      "region": "EU",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "NLRTM",
+      "region_detail": "North Sea"
+    },
+    {
+      "id": 46784,
+      "name": "Port of Salalah",
+      "lat": 16.20015,
+      "lon": 54.20015,
+      "region": "EU",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT784",
+      "region_detail": "EU"
+    },
+    {
+      "id": 56220,
+      "name": "Port of Valencia",
+      "lat": 39.448475,
+      "lon": -0.31925,
+      "region": "EU",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT220",
+      "region_detail": "EU"
+    },
+    {
+      "id": 21262,
+      "name": "Strait of Gibraltar Portal",
+      "lat": 35.9653,
+      "lon": -5.62505,
+      "region": "EU",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "PORT262",
+      "region_detail": "EU"
+    },
+    {
+      "id": 21473,
+      "name": "Suez Canal South Entry",
+      "lat": 29.95585,
+      "lon": 32.5417,
+      "region": "EU",
+      "node_type": "port",
+      "is_major_port": true,
+      "code": "EGSUE",
+      "region_detail": "Red Sea / Suez South"
+    }
+  ],
+  "nodes": [
+    {
+      "id": 52295,
+      "name": "Port of Buenos Aires",
+      "lat": -34.5969,
+      "lon": -58.3686,
+      "region": "AMERICAS",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 27099,
+      "name": "Port of Callao (Lima)",
+      "lat": -12.1745,
+      "lon": -77.6271,
+      "region": "AMERICAS",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 17119,
+      "name": "Port of Charleston",
+      "lat": 32.2439,
+      "lon": -79.2207,
+      "region": "AMERICAS",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 41993,
+      "name": "Port of Colon (Cristobal - Atlantic)",
+      "lat": 9.3153,
+      "lon": -79.9197,
+      "region": "AMERICAS",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 56004,
+      "name": "Port of Houston",
+      "lat": 29.747375,
+      "lon": -95.28455,
+      "region": "AMERICAS",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 56181,
+      "name": "Port of Long Beach",
+      "lat": 33.747,
+      "lon": -118.2483,
+      "region": "AMERICAS",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 55508,
+      "name": "Port of Los Angeles",
+      "lat": 33.7469,
+      "lon": -118.2483,
+      "region": "AMERICAS",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 53731,
+      "name": "Port of Miami",
+      "lat": 25.784325,
+      "lon": -80.1818,
+      "region": "AMERICAS",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 55903,
+      "name": "Port of New Orleans",
+      "lat": 29.989,
+      "lon": -90.02,
+      "region": "AMERICAS",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 6383,
+      "name": "Port of New York & New Jersey",
+      "lat": 40.6465,
+      "lon": -74.0631,
+      "region": "AMERICAS",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 5979,
+      "name": "Port of Norfolk (Hampton Roads)",
+      "lat": 36.9485,
+      "lon": -75.9599,
+      "region": "AMERICAS",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 17895,
+      "name": "Port of Oakland / San Francisco",
+      "lat": 37.8301,
+      "lon": -122.3971,
+      "region": "AMERICAS",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 32872,
+      "name": "Port of Panama (Balboa - Pacific)",
+      "lat": 8.871,
+      "lon": -79.5201,
+      "region": "AMERICAS",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 39601,
+      "name": "Port of Santos (Sao Paulo)",
+      "lat": -24.3,
+      "lon": -46.3,
+      "region": "AMERICAS",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 52305,
+      "name": "Port of Savannah",
+      "lat": 32.1242,
+      "lon": -79.4801,
+      "region": "AMERICAS",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 55208,
+      "name": "Port of Seattle / Tacoma",
+      "lat": 47.59715,
+      "lon": -122.340625,
+      "region": "AMERICAS",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 54014,
+      "name": "Port of Valparaiso",
+      "lat": -33.0333,
+      "lon": -71.6333,
+      "region": "AMERICAS",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 53999,
+      "name": "Port of Vancouver",
+      "lat": 49.2706,
+      "lon": -123.1203,
+      "region": "AMERICAS",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 32115,
+      "name": "Port of Busan",
+      "lat": 35.0918,
+      "lon": 129.0372,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 48142,
+      "name": "Port of Cape Town",
+      "lat": -33.9007,
+      "lon": 18.4284,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 22605,
+      "name": "Port of Chennai",
+      "lat": 13.0,
+      "lon": 81.0,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 21881,
+      "name": "Port of Cochin",
+      "lat": 9.7,
+      "lon": 75.3,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 45250,
+      "name": "Port of Colombo",
+      "lat": 6.942325,
+      "lon": 79.846525,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 49452,
+      "name": "Port of Dubai (Jebel Ali)",
+      "lat": 25.2653,
+      "lon": 55.2791,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 27897,
+      "name": "Port of Durban",
+      "lat": -30.0,
+      "lon": 32.00025,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 55769,
+      "name": "Port of Guangzhou (Nansha)",
+      "lat": 22.6663,
+      "lon": 113.6956,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 49682,
+      "name": "Port of Hong Kong",
+      "lat": 22.2939,
+      "lon": 114.1647,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 23826,
+      "name": "Port of Kandla / Mundra",
+      "lat": 21.0544,
+      "lon": 69.1663,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 13051,
+      "name": "Port of Kaohsiung",
+      "lat": 22.4557,
+      "lon": 119.75315,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 53142,
+      "name": "Port of Melbourne",
+      "lat": -38.0,
+      "lon": 144.9,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 45822,
+      "name": "Port of Mumbai (JNPT)",
+      "lat": 18.9584,
+      "lon": 72.8434,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 37159,
+      "name": "Port of Ningbo-Zhoushan",
+      "lat": 30.3459,
+      "lon": 121.8969,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 1893,
+      "name": "Port of Qingdao",
+      "lat": 36.0911,
+      "lon": 120.3213,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 55196,
+      "name": "Port of Shanghai",
+      "lat": 31.23975,
+      "lon": 121.483775,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 55337,
+      "name": "Port of Shenzhen (Yantian)",
+      "lat": 22.294,
+      "lon": 114.1648,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 49102,
+      "name": "Port of Singapore",
+      "lat": 1.2621,
+      "lon": 103.8531,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 27020,
+      "name": "Port of Sydney (Botany)",
+      "lat": -34.0001,
+      "lon": 151.5,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 55571,
+      "name": "Port of Tianjin",
+      "lat": 38.9847,
+      "lon": 117.7006,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 38512,
+      "name": "Port of Tokyo",
+      "lat": 35.6181,
+      "lon": 139.7656,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 55236,
+      "name": "Port of Yokohama",
+      "lat": 35.45295,
+      "lon": 139.649625,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 55841,
+      "name": "Strait of Hormuz Portal",
+      "lat": 26.49535,
+      "lon": 56.438125,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 12153,
+      "name": "Strait of Malacca Portal",
+      "lat": 1.1,
+      "lon": 103.6,
+      "region": "APAC",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 46607,
+      "name": "Bab-el-Mandeb Strait Portal",
+      "lat": 12.699,
+      "lon": 43.3024,
+      "region": "EU",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 24404,
+      "name": "English Channel Portal",
+      "lat": 51.093,
+      "lon": 1.4444,
+      "region": "EU",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 37100,
+      "name": "Port Said (Suez Canal North)",
+      "lat": 31.311475,
+      "lon": 32.371625,
+      "region": "EU",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 21083,
+      "name": "Port of Algeciras (Gibraltar)",
+      "lat": 36.128775,
+      "lon": -5.401025,
+      "region": "EU",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 20042,
+      "name": "Port of Antwerp-Bruges",
+      "lat": 51.27285,
+      "lon": 4.33825,
+      "region": "EU",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 37388,
+      "name": "Port of Barcelona",
+      "lat": 41.33245,
+      "lon": 2.16615,
+      "region": "EU",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 16298,
+      "name": "Port of Bremerhaven",
+      "lat": 53.538,
+      "lon": 8.569525,
+      "region": "EU",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 17161,
+      "name": "Port of Felixstowe / London",
+      "lat": 51.9508,
+      "lon": 1.31205,
+      "region": "EU",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 45573,
+      "name": "Port of Genoa",
+      "lat": 44.414,
+      "lon": 8.9166,
+      "region": "EU",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 40487,
+      "name": "Port of Gioia Tauro",
+      "lat": 38.445069,
+      "lon": 15.887075,
+      "region": "EU",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 35681,
+      "name": "Port of Hamburg",
+      "lat": 53.5451,
+      "lon": 9.9273,
+      "region": "EU",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 46802,
+      "name": "Port of Jeddah",
+      "lat": 21.46975,
+      "lon": 39.163125,
+      "region": "EU",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 5268,
+      "name": "Port of Le Havre",
+      "lat": 49.474213,
+      "lon": 0.098497,
+      "region": "EU",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 54586,
+      "name": "Port of Marseille (Fos)",
+      "lat": 43.3883,
+      "lon": 4.9405,
+      "region": "EU",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 52787,
+      "name": "Port of Piraeus (Athens)",
+      "lat": 37.9383,
+      "lon": 23.6238,
+      "region": "EU",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 21998,
+      "name": "Port of Rotterdam",
+      "lat": 51.985056,
+      "lon": 4.0771,
+      "region": "EU",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 46784,
+      "name": "Port of Salalah",
+      "lat": 16.20015,
+      "lon": 54.20015,
+      "region": "EU",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 56220,
+      "name": "Port of Valencia",
+      "lat": 39.448475,
+      "lon": -0.31925,
+      "region": "EU",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 21262,
+      "name": "Strait of Gibraltar Portal",
+      "lat": 35.9653,
+      "lon": -5.62505,
+      "region": "EU",
+      "node_type": "port",
+      "is_major_port": true
+    },
+    {
+      "id": 21473,
+      "name": "Suez Canal South Entry",
+      "lat": 29.95585,
+      "lon": 32.5417,
+      "region": "EU",
+      "node_type": "port",
+      "is_major_port": true
+    }
+  ]
+}
